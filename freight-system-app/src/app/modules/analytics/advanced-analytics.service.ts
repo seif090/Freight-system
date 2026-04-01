@@ -105,6 +105,14 @@ export class AdvancedAnalyticsService {
     return this.http.post(`https://localhost:5001/api/v1.0/telemetry/deviation-check`, request);
   }
 
+  executeAssistant(request: any) {
+    return this.http.post(`https://localhost:5001/api/v1.0/assistant/execute`, request);
+  }
+
+  sendWebhook(type: string, payload: any) {
+    return this.http.post(`https://localhost:5001/api/v1.0/assistant/webhook?type=${type}`, payload);
+  }
+
   getWarehouseFacts(limit: number = 200) {
     return this.http.get<WarehouseFact[]>(`${this.baseUrl}/warehouse/facts?limit=${limit}`);
   }

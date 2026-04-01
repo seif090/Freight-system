@@ -1,0 +1,14 @@
+<section>
+  <h2>LLM Voice Assistant</h2>
+
+  <div>
+    <textarea [(ngModel)]="userInput" rows="3" cols="80" placeholder="Ask: reroute, establish Gantt, crew dispatch..."></textarea><br>
+    <button (click)="send()">Send</button>
+  </div>
+
+  <div class="assistant-conversation">
+    <div *ngFor="let msg of conversation">
+      <strong>{{ msg.role }}:</strong> {{ msg.text }}
+    </div>
+  </div>
+</section>

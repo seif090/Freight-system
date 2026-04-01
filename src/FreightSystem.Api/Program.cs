@@ -42,6 +42,7 @@ builder.Services.AddScoped<ITelematicsService, TelematicsService>();
 builder.Services.AddScoped<ITrafficService, TrafficService>();
 builder.Services.AddScoped<IAiTrainingService, AiTrainingService>();
 builder.Services.AddScoped<IDeviationService, DeviationService>();
+builder.Services.AddScoped<IAssistantService, AssistantService>();
 builder.Services.AddHttpClient<IMLService, MlStreamingService>();
 
 builder.Services.AddSignalR();
