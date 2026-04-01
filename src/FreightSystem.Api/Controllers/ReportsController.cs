@@ -1,8 +1,10 @@
 using ClosedXML.Excel;
 using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
+using FreightSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Text;
 
@@ -15,11 +17,13 @@ public class ReportsController : ControllerBase
 {
     private readonly IShipmentRepository _shipmentRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly FreightDbContext _dbContext;
 
-    public ReportsController(IShipmentRepository shipmentRepository, ICustomerRepository customerRepository)
+    public ReportsController(IShipmentRepository shipmentRepository, ICustomerRepository customerRepository, FreightDbContext dbContext)
     {
         _shipmentRepository = shipmentRepository;
         _customerRepository = customerRepository;
+        _dbContext = dbContext;
     }
 
     [HttpGet("dashboard")]
@@ -90,6 +94,70 @@ public class ReportsController : ControllerBase
             .Take(10);
 
         return Ok(topCustomers);
+    }
+
+    [HttpGet("llm-spend-trend")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get LLM spend trend and totals.", "الحصول على اتجاه إنفاق LLM والإجماليات.")]
+    public async Task<IActionResult> GetLlmSpendTrend([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+    {
+        var query = _dbContext.LlmSpendLogs.AsQueryable();
+
+        if (from.HasValue) query = query.Where(x => x.Timestamp >= from.Value.ToUniversalTime());
+        if (to.HasValue) query = query.Where(x => x.Timestamp <= to.Value.ToUniversalTime());
+
+        var entries = await query.ToListAsync();
+
+        var grouped = entries
+            .GroupBy(x => x.Timestamp.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                TotalToken = g.Sum(x => x.TokenUsage),
+                TotalCost = g.Sum(x => x.EstimatedCostUsd),
+                Requests = g.Count(),
+                SuccessRate = g.Any() ? g.Count(x => x.Success) * 100.0 / g.Count() : 0
+            })
+            .OrderBy(x => x.Date)
+            .ToList();
+
+        return Ok(new
+        {
+            TotalEntries = entries.Count,
+            TotalToken = entries.Sum(x => x.TokenUsage),
+            TotalCost = entries.Sum(x => x.EstimatedCostUsd),
+            GroupByDay = grouped
+        });
+    }
+
+    [HttpGet("delay-risk-forecast")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Predict delayed shipments using simple heuristic.", "توقع الشحنات المتأخرة باستخدام منهجية بسيطة.")]
+    public async Task<IActionResult> GetDelayRiskForecast()
+    {
+        var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
+        var now = DateTime.UtcNow;
+
+        var riskScores = shipments.Select(s => new
+        {
+            s.Id,
+            s.TrackingNumber,
+            s.Status,
+            s.ETA,
+            s.ETD,
+            DaysToETA = s.ETA.HasValue ? (s.ETA.Value - now).TotalDays : double.MaxValue,
+            RiskScore = s.ETA.HasValue
+                ? Math.Max(0, 100 - Math.Min(120, (s.ETA.Value - now).TotalHours))
+                : 100
+        }).OrderByDescending(x => x.RiskScore).Take(20);
+
+        return Ok(new
+        {
+            AsOf = now,
+            HighRisk = riskScores.Where(x => x.RiskScore >= 70),
+            MediumRisk = riskScores.Where(x => x.RiskScore >= 40 && x.RiskScore < 70),
+            LowRisk = riskScores.Where(x => x.RiskScore < 40)
+        });
     }
 
     [HttpGet("export/shipments")]
