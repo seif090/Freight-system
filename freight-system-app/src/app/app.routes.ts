@@ -76,6 +76,26 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/vehicles',
+    loadComponent: () => import('./modules/analytics/vehicle-fleet-dashboard.component').then((c) => c.VehicleFleetDashboardComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/optimize',
+    loadComponent: () => import('./modules/analytics/route-optimizer.component').then((c) => c.RouteOptimizerComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/time-to-failure',
+    loadComponent: () => import('./modules/analytics/time-to-failure.component').then((c) => c.TimeToFailureComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/notifications',
+    loadComponent: () => import('./modules/analytics/maintenance-notifications.component').then((c) => c.MaintenanceNotificationsComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]

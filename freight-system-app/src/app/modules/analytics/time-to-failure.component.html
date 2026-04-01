@@ -1,0 +1,8 @@
+<section>
+  <h2>Time-to-Failure Chart</h2>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <canvas #riskChart width="800" height="400"></canvas>
+  <div *ngIf="riskData.length">
+    <p>Vehicles nearing inspection window (<= 14 days): {{ riskData.length }}</p>
+  </div>
+</section>

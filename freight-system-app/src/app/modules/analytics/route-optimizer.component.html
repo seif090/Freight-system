@@ -1,0 +1,10 @@
+<section>
+  <h2>Route Optimizer UI Wizard</h2>
+  <label>Shipment ID: <input type="number" [(ngModel)]="shipmentId"></label><br>
+  <label>Route Segment JSON:</label><br>
+  <textarea [(ngModel)]="routeJson" rows="8" cols="80"></textarea><br>
+  <button (click)="optimize()">Optimize</button>
+
+  <div *ngIf="result"><h4>Optimized Result</h4><pre>{{ result | json }}</pre></div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+</section>

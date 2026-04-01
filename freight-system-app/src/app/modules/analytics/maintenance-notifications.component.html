@@ -1,0 +1,12 @@
+<section>
+  <h2>Maintenance Alerts / Reroute Recommendations</h2>
+  <label>Tenant ID: <input [(ngModel)]="tenantId"></label>
+  <button (click)="generate()">Fetch Maintenance Risk Alerts</button>
+  <button (click)="simulateReroute()">Simulate Reroute</button>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <ul>
+    <li *ngFor="let note of notifications">{{ note }}</li>
+  </ul>
+</section>

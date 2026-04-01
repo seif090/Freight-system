@@ -1,0 +1,22 @@
+<section>
+  <h2>Vehicle Fleet / Maintenance Dashboard</h2>
+  <label>Tenant ID: <input [(ngModel)]="tenantId" style="width: 150px;"></label> <button (click)="refresh()">Refresh</button>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Registration</th><th>Model</th><th>Manufacturer</th><th>Status</th><th>Next Inspection</th><th>Events</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let v of vehicles">
+        <td>{{ v.id }}</td>
+        <td>{{ v.registrationNumber }}</td>
+        <td>{{ v.model }}</td>
+        <td>{{ v.manufacturer }}</td>
+        <td>{{ v.status }}</td>
+        <td>{{ v.nextInspectionDue | date:'shortDate' }}</td>
+        <td>{{ v.maintenanceEvents?.length || 0 }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

@@ -73,6 +73,18 @@ export class AdvancedAnalyticsService {
     return this.http.post(`${this.baseUrl}/warehouse/snapshot`, {});
   }
 
+  getVehicles(tenantId: string = 'default') {
+    return this.http.get<any[]>(`https://localhost:5001/api/v1.0/advancedoperations/vehicles?tenantId=${tenantId}`);
+  }
+
+  getMaintenanceRisk(tenantId: string = 'default') {
+    return this.http.get<any[]>(`https://localhost:5001/api/v1.0/advancedoperations/vehicles/maintenance-risk?tenantId=${tenantId}`);
+  }
+
+  optimizeRoute(shipmentId: number, segments: any[]) {
+    return this.http.post(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${shipmentId}/optimize-route`, segments);
+  }
+
   getWarehouseFacts(limit: number = 200) {
     return this.http.get<WarehouseFact[]>(`${this.baseUrl}/warehouse/facts?limit=${limit}`);
   }
