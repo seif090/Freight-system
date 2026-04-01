@@ -50,7 +50,7 @@ namespace FreightSystem.Api.Services
 
             await SendSlackNotificationAsync(overdue, message);
 
-            await _hubContext.Clients.All.SendAsync("OverdueAlert", new
+            await _hubContext.Clients.Group("Dispatchers").SendAsync("OverdueAlert", new
             {
                 Count = overdue.Count,
                 Message = message,
@@ -111,6 +111,15 @@ namespace FreightSystem.Api.Services
             }
 
             await _dbContext.SaveChangesAsync();
+
+            if (missed.Count > 0)
+            {
+                await _hubContext.Clients.Group("Dispatchers").SendAsync("MissedEtaDelayHistoryPopulated", new
+                {
+                    Count = missed.Count,
+                    Message = $"{missed.Count} missed ETA shipments recorded in DelayHistory at {now:O}."
+                });
+            }
         }
 
         private async Task SendSlackNotificationAsync(IEnumerable<Shipment> overdue, string summary)

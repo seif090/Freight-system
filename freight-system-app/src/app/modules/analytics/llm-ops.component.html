@@ -1,5 +1,11 @@
 <section>
   <h2>LLM Operations Dashboard</h2>
+
+  <div *ngIf="bannerMessage" class="banner {{ bannerType }}">
+    {{ bannerMessage }}
+    <button class="close-banner" (click)="bannerMessage=''">×</button>
+  </div>
+
   <div *ngIf="error" class="error">{{ error }}</div>
 
   <div class="chart-box">

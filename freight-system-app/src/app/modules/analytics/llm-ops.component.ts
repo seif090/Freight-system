@@ -2,6 +2,7 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from './analytics.service';
+import { SignalrService } from '../../core/signalr.service';
 import Chart from 'chart.js/auto';
 
 @Component({
@@ -28,9 +29,11 @@ export class LlmOpsComponent implements OnInit {
 
   anomalyThreshold = 30;
   error = '';
+  bannerMessage = '';
+  bannerType: 'info' | 'success' | 'warning' | 'error' = 'info';
   anomalyClusterChartInstance: any;
 
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(private analyticsService: AnalyticsService, private signalr: SignalrService) {}
 
   ngOnInit(): void {
     this.analyticsService.getLlmSpendTrend().subscribe({
@@ -59,6 +62,16 @@ export class LlmOpsComponent implements OnInit {
       },
       error: err => this.error = err?.message || 'Failed to load regression'
     });
+
+    this.signalr.missedEtaDelayHistoryPopulated$.subscribe(payload => {
+      this.showBanner(`Dispatcher alert: ${payload.message || 'New missed ETA entries available'}`, 'success');
+      this.loadAnomalyClusters();
+      this.loadAnomalyClusterHistory();
+    });
+
+    this.signalr.overdueAlert$.subscribe(payload => {
+      this.showBanner(`Overdue shipment alert: ${payload.message || 'Check overdue shipments'}`, 'warning');
+    });
   }
 
   loadAnomalyClusterHistory(): void {
@@ -75,11 +88,21 @@ export class LlmOpsComponent implements OnInit {
     this.analyticsService.manualPopulateDelayHistory().subscribe({
       next: r => {
         this.error = '';
+        this.showBanner('Manual delay history refresh completed', 'success');
         this.loadAnomalyClusters();
         this.loadAnomalyClusterHistory();
       },
-      error: err => this.error = err?.message || 'Manual populate failed'
+      error: err => {
+        this.error = err?.message || 'Manual populate failed';
+        this.showBanner(this.error, 'error');
+      }
     });
+  }
+
+  private showBanner(message: string, type: 'info' | 'success' | 'warning' | 'error'): void {
+    this.bannerMessage = message;
+    this.bannerType = type;
+    setTimeout(() => this.bannerMessage = '', 10000);
   }
 
   loadAnomalyClusters(): void {

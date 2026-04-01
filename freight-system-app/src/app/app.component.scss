@@ -1,0 +1,24 @@
+.banner {
+  position: relative;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+  border-radius: 4px;
+  color: #fff;
+}
+.banner.info { background: #2196f3; }
+.banner.success { background: #4caf50; }
+.banner.warning { background: #ff9800; }
+.banner.error { background: #f44336; }
+.close-banner {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+.error {
+  color: red;
+  margin: 0.75rem 0;
+}

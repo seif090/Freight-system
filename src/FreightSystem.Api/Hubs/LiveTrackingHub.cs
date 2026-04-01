@@ -14,5 +14,15 @@ public class LiveTrackingHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, GetShipmentGroupName(shipmentId));
     }
 
+    public async Task SubscribeToDispatchers() 
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, "Dispatchers");
+    }
+
+    public async Task UnsubscribeFromDispatchers()
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Dispatchers");
+    }
+
     private static string GetShipmentGroupName(int shipmentId) => $"Shipment_{shipmentId}";
 }

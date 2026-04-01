@@ -17,6 +17,7 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
    - `dotnet build`
 4. طبق المايجريشن:
    - `cd src\FreightSystem.Infrastructure`
+   - `dotnet ef migrations add DelayHistoryDispatcherSignalR --startup-project ..\FreightSystem.Api --context FreightDbContext`
    - `dotnet ef database update --startup-project ..\FreightSystem.Api --context FreightDbContext`
 5. شغل السيرفر:
    - `cd ..\FreightSystem.Api`

@@ -6,6 +6,8 @@ import { Subject } from 'rxjs';
 export class SignalrService {
   private hubConnection?: signalR.HubConnection;
   public shipmentUpdated$ = new Subject<any>();
+  public missedEtaDelayHistoryPopulated$ = new Subject<any>();
+  public overdueAlert$ = new Subject<any>();
 
   startConnection(): void {
     this.hubConnection = new signalR.HubConnectionBuilder()
@@ -13,7 +15,9 @@ export class SignalrService {
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.start().catch(err => console.error('SignalR Connection Error:', err));
+    this.hubConnection.start().then(() => {
+      this.hubConnection?.invoke('SubscribeToDispatchers').catch(err => console.error('SignalR subscribe dispatcher failed:', err));
+    }).catch(err => console.error('SignalR Connection Error:', err));
 
     this.hubConnection.on('ShipmentUpdated', data => {
       this.shipmentUpdated$.next(data);
@@ -23,6 +27,16 @@ export class SignalrService {
     this.hubConnection.on('ShipmentCreated', data => {
       this.shipmentUpdated$.next(data);
       this.notifyUser(data, 'New shipment');
+    });
+
+    this.hubConnection.on('MissedEtaDelayHistoryPopulated', data => {
+      this.missedEtaDelayHistoryPopulated$.next(data);
+      this.notifyUser(data, 'Missed ETA Delay history update');
+    });
+
+    this.hubConnection.on('OverdueAlert', data => {
+      this.overdueAlert$.next(data);
+      this.notifyUser(data, 'Overdue shipments alert');
     });
   }
 
