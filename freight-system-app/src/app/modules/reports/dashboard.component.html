@@ -10,17 +10,10 @@
 
     <div class="charts">
       <div class="chart-box">
-        <h3>Shipments Per Status</h3>
-        <ul>
-          <li *ngFor="let key of getStatusKeys()">{{ key }}: {{ dashboardData.shipmentsPerStatus[key] }}</li>
-        </ul>
+        <canvas #statusCanvas></canvas>
       </div>
-
       <div class="chart-box">
-        <h3>Shipments Per Mode</h3>
-        <ul>
-          <li *ngFor="let key of getModeKeys()">{{ key }}: {{ dashboardData.shipmentsPerMode[key] }}</li>
-        </ul>
+        <canvas #modeCanvas></canvas>
       </div>
     </div>
 
@@ -29,6 +22,19 @@
       <ul>
         <li *ngFor="let item of (dashboardData.monthlyShipmentCount | keyvalue)">{{ item.key }}: {{ item.value }}</li>
       </ul>
+    </div>
+
+    <div class="chart-box">
+      <h3>Top Customers by Invoice Value</h3>
+      <ul>
+        <li *ngFor="let c of dashboardData.topCustomers">{{ c.name }} ({{ c.totalInvoiced | number:'1.0-2' }})</li>
+      </ul>
+    </div>
+
+    <div class="chart-box">
+      <h3>Actions</h3>
+      <button (click)="exportShipments('csv')">Export Shipments CSV</button>
+      <button (click)="exportShipments('excel')">Export Shipments Excel</button>
     </div>
   </div>
 </div>

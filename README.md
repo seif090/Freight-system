@@ -72,14 +72,23 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 - Advanced reports: `GET /api/v1.0/reports/overdue`, `GET /api/v1.0/reports/top-customers`.
 - Swagger x-description added via `XDescriptionAttribute` for Arabic/English description.
 - Hangfire email/SMS mock notifications via `INotificationService`.
-- Shipments overdue alert scheduler (Hangfire daily 02:00) via `ShipmentMonitoringService`.
+- Shipments overdue alert scheduler (Hangfire daily 02:00) via `ShipmentMonitoringService` and Slack webhook (config key `Notifications:SlackWebhookUrl`).
 - RBAC from DB: user/role/userrole entities plus dynamic JWT claim roles and `DbInitializer` seeding.
 - Audit trail: request path/method/status saved to `AuditLogs` with middleware.
 - Admin RBAC endpoints: `GET /api/v1.0/admin/roles`, `POST /api/v1.0/admin/roles`, `POST /api/v1.0/admin/users/{id}/roles`.
+- Export endpoint: `GET /api/v1.0/reports/export/shipments?format=csv|excel`.
+- Audit listing endpoint: `GET /api/v1.0/audit?page=1&pageSize=20`.
+- Dashboard with interactive Chart.js charts and role-guarded UI + menu.
 
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`
 SignalR endpoint: `https://localhost:5001/hubs/tracking`
+Slack webhook setting (optional):
+```json
+"Notifications": {
+  "SlackWebhookUrl": "https://hooks.slack.com/services/your/webhook/path
+}
+```
 
 ## Troubleshooting
 - اذا ظهر تحذير شهادة تطور: `dotnet dev-certs https --trust`.

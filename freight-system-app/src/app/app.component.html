@@ -7,5 +7,26 @@
     <a routerLink="/customers">Customers</a> |
     <a routerLink="/documents">Documents</a>
   </nav>
+
+  <div class="role-info">
+    <p>المستخدم حاليًا يمتلك الأدوار: <strong>{{ userRoles.join(', ') || 'غير مسجل' }}</strong></p>
+    <button *ngIf="userRoles.length" (click)="logout()">Logout</button>
+  </div>
+
+  <section class="access-table">
+    <h3>Role-based Route Access</h3>
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Dashboard</th><th>Shipments</th><th>Customers</th><th>Documents</th><th>Admin</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Admin</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+        <tr><td>Operation</td><td>✔</td><td>✔</td><td>✘</td><td>✔</td><td>✘</td></tr>
+        <tr><td>Sales</td><td>✔</td><td>✔</td><td>✔</td><td>✘</td><td>✘</td></tr>
+        <tr><td>Accountant</td><td>✔</td><td>✘</td><td>✘</td><td>✘</td><td>✘</td></tr>
+      </tbody>
+    </table>
+  </section>
+
   <router-outlet></router-outlet>
 </main>

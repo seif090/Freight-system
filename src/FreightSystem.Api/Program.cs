@@ -27,6 +27,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddScoped<ShipmentMonitoringService>();
+builder.Services.AddHttpClient();
 
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config =>

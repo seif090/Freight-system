@@ -2,6 +2,7 @@ using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace FreightSystem.Api.Controllers;
 
@@ -87,6 +88,29 @@ public class ReportsController : ControllerBase
             .Take(10);
 
         return Ok(topCustomers);
+    }
+
+    [HttpGet("export/shipments")]
+    [Authorize(Policy = "SalesPolicy")]
+    [XDescription("Export shipments data as CSV or Excel (CSV format).", "تصدير بيانات الشحنات بصيغة CSV أو Excel.")]
+    public async Task<IActionResult> ExportShipments([FromQuery] string format = "csv")
+    {
+        var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
+
+        var csv = new StringBuilder();
+        csv.AppendLine("Id,TrackingNumber,Status,Mode,ETD,ETA,CustomerId,CreatedAt");
+        foreach (var s in shipments)
+        {
+            csv.AppendLine($"{s.Id},{s.TrackingNumber},{s.Status},{s.Mode},{s.ETD?.ToString("u") ?? ""},{s.ETA?.ToString("u") ?? ""},{s.CustomerId},{s.CreatedAt:u}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        var contentType = "text/csv";
+        var fileName = format.ToLower() == "excel" ? "shipments.xlsx" : "shipments.csv";
+        if (format.ToLower() == "excel")
+            contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+        return File(bytes, contentType, fileName);
     }
 }
 
