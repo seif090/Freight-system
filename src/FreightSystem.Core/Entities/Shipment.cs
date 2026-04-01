@@ -5,6 +5,7 @@ namespace FreightSystem.Core.Entities
     public enum ShipmentStatus { Pending, InTransit, Delivered, Cancelled }
     public enum ContainerType { None, TwentyFt, FortyFt, LCL, FCL }
     public enum ShipmentPriority { Low, Normal, High, Critical }
+    public enum RouteRiskLevel { Low, Medium, High, Critical }
 
     public class Shipment
     {
@@ -27,6 +28,8 @@ namespace FreightSystem.Core.Entities
 
         public int? SupplierId { get; set; }
         public Supplier? Supplier { get; set; }
+
+        public string TenantId { get; set; } = "default";
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

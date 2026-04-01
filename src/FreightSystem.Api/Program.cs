@@ -26,6 +26,7 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
+builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<ShipmentMonitoringService>();
 builder.Services.AddHttpClient();
 
@@ -116,6 +117,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHangfireDashboard();
 app.UseHttpsRedirection();
+app.UseTenant();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAuditLog();

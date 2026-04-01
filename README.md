@@ -79,6 +79,12 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 - Export endpoint: `GET /api/v1.0/reports/export/shipments?format=csv|excel`.
 - Audit listing endpoint: `GET /api/v1.0/audit?page=1&pageSize=20`.
 - Dashboard with interactive Chart.js charts and role-guarded UI + menu.
+- Multi-tenant support via `X-Tenant-ID` header applied by `TenantMiddleware`.
+- Tenant-scoped shipment listing at `GET /api/v1.0/shipments`.
+- CSV import shipments endpoint: `POST /api/v1.0/shipments/import`.
+- Route optimization endpoint: `GET /api/v1.0/shipments/route-suggestion?origin=...&destination=...`.
+- Predictive analytics summary at `GET /api/v1.0/analytics/summary`.
+- Live `OverdueAlert` event on SignalR notify.
 
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`

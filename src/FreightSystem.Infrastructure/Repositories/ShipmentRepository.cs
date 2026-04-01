@@ -36,6 +36,17 @@ namespace FreightSystem.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Shipment>> GetAllByTenantAsync(string tenantId)
+        {
+            return await _dbContext.Shipments
+                .Where(x => x.TenantId == tenantId)
+                .Include(x => x.Customer)
+                .Include(x => x.Supplier)
+                .Include(x => x.Details)
+                .Include(x => x.Documents)
+                .ToListAsync();
+        }
+
         public async Task<Shipment?> GetByIdAsync(int id)
         {
             return await _dbContext.Shipments

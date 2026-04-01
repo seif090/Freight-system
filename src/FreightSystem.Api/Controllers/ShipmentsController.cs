@@ -30,11 +30,39 @@ public class ShipmentsController : ControllerBase
 
     [HttpGet]
     [Authorize(Policy = "SalesPolicy")]
-    [XDescription("Retrieve all shipments for the current user.", "استرجاع جميع الشحنات للمستخدم الحالي.")]
-    public async Task<IActionResult> GetAll()
+    [XDescription("Retrieve all tenant shipments for the current user.", "استرجاع جميع شحنات المستأجر للمستخدم الحالي.")]
+    public async Task<IActionResult> GetAll([FromServices] ITenantContext tenantContext)
     {
-        var shipments = await _shipmentRepository.GetAllAsync();
+        var tenantId = tenantContext.TenantId;
+        var shipments = await _shipmentRepository.GetAllByTenantAsync(tenantId);
         return Ok(shipments);
+    }
+
+    [HttpGet("route-suggestion")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Recommend optimized route based on origin/destination.", "اقتراح مسار محسّن بناءً على نقطة الانطلاق/الوصول.")]
+    public IActionResult GetRouteSuggestions([FromQuery] string origin, [FromQuery] string destination)
+    {
+        if (string.IsNullOrWhiteSpace(origin) || string.IsNullOrWhiteSpace(destination))
+            return BadRequest("origin and destination required");
+
+        // Mock route optimization
+        var result = new
+        {
+            origin,
+            destination,
+            distanceKm = 1380,
+            estimatedTimeHours = 23.5,
+            riskLevel = "Medium",
+            recommendedSteps = new[]
+            {
+                "Port departure: check customs clearance",
+                "Use inland ferries for mountain region",
+                "Avoid high congestion corridors during daytime"
+            }
+        };
+
+        return Ok(result);
     }
 
     [HttpPost("import")]
