@@ -186,6 +186,65 @@ public class ReportsController : ControllerBase
         });
     }
 
+    [HttpGet("delay-history")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get delay history records.", "الحصول على سجلات تاريخ التأخير.")]
+    public async Task<IActionResult> GetDelayHistory([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] int? shipmentId = null, [FromQuery] int limit = 1000)
+    {
+        var query = _dbContext.DelayHistories.AsQueryable();
+
+        if (from.HasValue) query = query.Where(x => x.CreatedAt >= from.Value.ToUniversalTime());
+        if (to.HasValue) query = query.Where(x => x.CreatedAt <= to.Value.ToUniversalTime());
+        if (shipmentId.HasValue) query = query.Where(x => x.ShipmentId == shipmentId.Value);
+
+        var history = await query.OrderByDescending(x => x.CreatedAt).Take(limit).ToListAsync();
+
+        return Ok(new { count = history.Count, history });
+    }
+
+    [HttpGet("delay-history/download")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Download delay history as CSV.", "تحميل سجل التأخير بتنسيق CSV.")]
+    public async Task<IActionResult> DownloadDelayHistory([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+    {
+        var query = _dbContext.DelayHistories.AsQueryable();
+        if (from.HasValue) query = query.Where(x => x.CreatedAt >= from.Value.ToUniversalTime());
+        if (to.HasValue) query = query.Where(x => x.CreatedAt <= to.Value.ToUniversalTime());
+
+        var history = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+
+        var csv = new StringBuilder();
+        csv.AppendLine("Id,ShipmentId,ETD,ETA,ActualDeparture,ActualArrival,DurationHours,DelayMinutes,Status,TenantId,CreatedAt");
+        foreach (var item in history)
+        {
+            csv.AppendLine($"{item.Id},{item.ShipmentId},{item.ETD:o},{item.ETA:o},{item.ActualDeparture:o},{item.ActualArrival:o},{item.DurationHours},{item.DelayMinutes},{item.Status},{item.TenantId},{item.CreatedAt:o}");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        return File(bytes, "text/csv", "delay-history.csv");
+    }
+
+    [HttpGet("delay-history/anomalies")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get delay anomaly clusters.", "الحصول على مجموعات العيوب في تأخير الشحنات.")]
+    public async Task<IActionResult> GetDelayHistoryAnomalies([FromQuery] double thresholdMinutes = 30)
+    {
+        var matches = await _dbContext.DelayHistories
+            .Where(x => Math.Abs(x.DelayMinutes) >= thresholdMinutes)
+            .ToListAsync();
+
+        var clusters = matches.GroupBy(x => x.Status).Select(g => new
+        {
+            Status = g.Key,
+            Count = g.Count(),
+            AvgDelay = g.Average(x => x.DelayMinutes),
+            MaxDelay = g.Max(x => x.DelayMinutes),
+            MinDelay = g.Min(x => x.DelayMinutes)
+        }).ToList();
+
+        return Ok(new { thresholdMinutes, totalMatches = matches.Count, clusters, matches });
+    }
+
     [HttpGet("export/shipments")]
     [Authorize(Policy = "SalesPolicy")]
     [XDescription("Export shipments data as CSV or Excel (CSV format).", "تصدير بيانات الشحنات بصيغة CSV أو Excel.")]

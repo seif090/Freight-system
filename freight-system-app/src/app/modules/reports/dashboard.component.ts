@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ReportsService } from './reports.service';
 import Chart from 'chart.js/auto';
 
@@ -7,7 +8,7 @@ import Chart from 'chart.js/auto';
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterModule]
 })
 export class DashboardComponent implements OnInit {
   @ViewChild('statusCanvas') statusCanvas?: ElementRef<HTMLCanvasElement>;

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Hangfire;
 using System.Globalization;
 using System.IO;
@@ -207,7 +208,44 @@ public class ShipmentsController : ControllerBase
 
         await _eventBus.PublishAsync("shipment-updated", new { existing.Id, existing.TrackingNumber, existing.Status, existing.CurrentLatitude, existing.CurrentLongitude, existing.UpdatedAt });
 
+        await AddDelayHistoryIfDelivered(existing);
+
         return NoContent();
+    }
+
+    private async Task AddDelayHistoryIfDelivered(Shipment shipment)
+    {
+        if (shipment.Status != ShipmentStatus.Delivered || !shipment.ETA.HasValue || !shipment.ETD.HasValue || !shipment.UpdatedAt.HasValue)
+            return;
+
+        // Avoid duplicates by checking recent entry
+        var recent = await _dbContext.DelayHistories
+            .Where(x => x.ShipmentId == shipment.Id)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (recent != null && recent.ActualArrival == shipment.UpdatedAt.Value)
+            return;
+
+        var delayMinutes = (shipment.UpdatedAt.Value - shipment.ETA.Value).TotalMinutes;
+        var durationHours = (shipment.ETA.Value - shipment.ETD.Value).TotalHours;
+
+        var record = new Core.Entities.DelayHistory
+        {
+            ShipmentId = shipment.Id,
+            ETD = shipment.ETD,
+            ETA = shipment.ETA,
+            ActualDeparture = shipment.ETD ?? shipment.UpdatedAt.Value,
+            ActualArrival = shipment.UpdatedAt.Value,
+            DurationHours = durationHours,
+            DelayMinutes = delayMinutes,
+            Status = shipment.Status.ToString(),
+            TenantId = shipment.TenantId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.DelayHistories.Add(record);
+        await _dbContext.SaveChangesAsync();
     }
 
     [HttpPost("offline-sync")]
@@ -227,11 +265,18 @@ public class ShipmentsController : ControllerBase
                 existing.Status = item.Status;
                 existing.UpdatedAt = DateTime.UtcNow;
                 await _shipmentRepository.UpdateAsync(existing);
+
+                await AddDelayHistoryIfDelivered(existing);
             }
             else
             {
                 item.TenantId = item.TenantId ?? "default";
                 await _shipmentRepository.AddAsync(item);
+
+                if (item.Status == ShipmentStatus.Delivered)
+                {
+                    await AddDelayHistoryIfDelivered(item);
+                }
             }
         }
 

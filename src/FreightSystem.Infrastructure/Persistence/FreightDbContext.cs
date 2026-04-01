@@ -30,6 +30,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<TelematicsData> Telematics => Set<TelematicsData>();
         public DbSet<BlockchainAudit> BlockchainAudits => Set<BlockchainAudit>();
         public DbSet<RouteDeviationAlert> RouteDeviationAlerts => Set<RouteDeviationAlert>();
+        public DbSet<DelayHistory> DelayHistories => Set<DelayHistory>();
         public DbSet<LlmSpendLog> LlmSpendLogs => Set<LlmSpendLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -149,6 +150,22 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
                 entity.Property(x => x.Notes).HasMaxLength(512);
+            });
+
+            modelBuilder.Entity<DelayHistory>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.ShipmentId).IsRequired();
+                entity.Property(x => x.ETD);
+                entity.Property(x => x.ETA);
+                entity.Property(x => x.ActualDeparture).IsRequired();
+                entity.Property(x => x.ActualArrival).IsRequired();
+                entity.Property(x => x.DurationHours).IsRequired();
+                entity.Property(x => x.DelayMinutes).IsRequired();
+                entity.Property(x => x.Status).HasMaxLength(50);
+                entity.Property(x => x.TenantId).HasMaxLength(100);
+                entity.Property(x => x.CreatedAt).IsRequired();
+                entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<LlmSpendLog>(entity =>

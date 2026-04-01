@@ -1,0 +1,19 @@
+<section>
+  <h2>LLM Operations Dashboard</h2>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div class="chart-box">
+    <h3>Token vs Cost Evolution</h3>
+    <canvas #tokenCostChart></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h3>Risk Trend</h3>
+    <canvas #riskTrendChart></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h3>Delay Duration Regression</h3>
+    <canvas #regressionChart></canvas>
+  </div>
+</section>
