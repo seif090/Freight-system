@@ -37,6 +37,7 @@ builder.Services.Configure<MlSettings>(builder.Configuration.GetSection("Ml"));
 builder.Services.AddSingleton<IEventBus, KafkaEventBus>();
 builder.Services.AddScoped<IGeoService, GeoService>();
 builder.Services.AddScoped<IMLService, MlStreamingService>();
+builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
 builder.Services.AddHttpClient<IMLService, MlStreamingService>();
 
 builder.Services.AddSignalR();

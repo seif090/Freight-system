@@ -24,6 +24,8 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<RouteSegment> RouteSegments => Set<RouteSegment>();
         public DbSet<Geofence> Geofences => Set<Geofence>();
         public DbSet<WarehouseShipmentFact> WarehouseShipmentFacts => Set<WarehouseShipmentFact>();
+        public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+        public DbSet<MaintenanceEvent> MaintenanceEvents => Set<MaintenanceEvent>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -98,6 +100,19 @@ namespace FreightSystem.Infrastructure.Persistence
             });
 
             modelBuilder.Entity<ShipmentDetail>(entity => { entity.HasKey(x => x.Id); });
+
+            modelBuilder.Entity<Vehicle>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.HasIndex(x => x.RegistrationNumber).IsUnique();
+                entity.HasMany(x => x.MaintenanceEvents).WithOne(x => x.Vehicle).HasForeignKey(x => x.VehicleId);
+            });
+
+            modelBuilder.Entity<MaintenanceEvent>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Description).HasMaxLength(500);
+            });
 
             modelBuilder.Entity<Customer>(entity =>
             {
