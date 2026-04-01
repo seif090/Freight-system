@@ -163,3 +163,6 @@ C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\obj\Debug\net10.0\re
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\obj\Debug\net10.0\FreightSystem.Api.pdb
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\obj\Debug\net10.0\FreightSystem.Api.genruntimeconfig.cache
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\obj\Debug\net10.0\ref\FreightSystem.Api.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer.dll

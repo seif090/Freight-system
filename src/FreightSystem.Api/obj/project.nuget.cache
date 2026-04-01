@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "OHHm0FUrUQg=",
+  "dgSpecHash": "toplcVIK1jg=",
   "success": true,
   "projectFilePath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Api\\FreightSystem.Api.csproj",
   "expectedPackageFiles": [
@@ -10,6 +10,7 @@
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.5\\microsoft.aspnetcore.authentication.jwtbearer.10.0.5.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.apiexplorer\\2.3.9\\microsoft.aspnetcore.mvc.apiexplorer.2.3.9.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.versioning\\5.1.0\\microsoft.aspnetcore.mvc.versioning.5.1.0.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.versioning.apiexplorer\\5.1.0\\microsoft.aspnetcore.mvc.versioning.apiexplorer.5.1.0.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.3\\microsoft.aspnetcore.openapi.10.0.3.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\8.0.0\\microsoft.bcl.asyncinterfaces.8.0.0.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.bcl.cryptography\\9.0.4\\microsoft.bcl.cryptography.9.0.4.nupkg.sha512",

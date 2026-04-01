@@ -1,0 +1,31 @@
+<div>
+  <h2>قائمة العملاء</h2>
+
+  <div *ngIf="loading">جارٍ التحميل...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table *ngIf="!loading && !error && customers.length" class="table">
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>البريد الإلكتروني</th>
+        <th>الهاتف</th>
+        <th>العنوان</th>
+        <th>الحد الائتماني</th>
+        <th>الرصيد</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let customer of customers">
+        <td>{{ customer.name }}</td>
+        <td>{{ customer.email }}</td>
+        <td>{{ customer.phone }}</td>
+        <td>{{ customer.address }}</td>
+        <td>{{ customer.creditLimit }}</td>
+        <td>{{ customer.balance }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && !error && !customers.length">لا يوجد عملاء حتى الآن.</div>
+</div>
