@@ -44,6 +44,22 @@ namespace FreightSystem.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<IEnumerable<Customer>> SearchAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return await GetAllAsync();
+
+            query = query.Trim().ToLowerInvariant();
+            return await _dbContext.Customers
+                .Where(x => x.Name.ToLower().Contains(query)
+                    || x.Email.ToLower().Contains(query)
+                    || x.Phone.ToLower().Contains(query)
+                    || x.Address.ToLower().Contains(query))
+                .Include(x => x.Shipments)
+                .Include(x => x.Invoices)
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(Customer customer)
         {
             _dbContext.Customers.Update(customer);

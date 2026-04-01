@@ -1,0 +1,20 @@
+<div>
+  <h2>Global Search</h2>
+  <input [(ngModel)]="query" placeholder="Search shipments/customers" />
+  <button (click)="doSearch()">Search</button>
+  <p *ngIf="error" class="error">{{ error }}</p>
+
+  <div *ngIf="shipments.length">
+    <h3>Shipments</h3>
+    <ul>
+      <li *ngFor="let s of shipments">{{ s.trackingNumber }} - {{ s.status }} - {{ s.mode }}</li>
+    </ul>
+  </div>
+
+  <div *ngIf="customers.length">
+    <h3>Customers</h3>
+    <ul>
+      <li *ngFor="let c of customers">{{ c.name }} - {{ c.email }} - {{ c.phone }}</li>
+    </ul>
+  </div>
+</div>

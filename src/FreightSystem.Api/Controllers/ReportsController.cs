@@ -1,7 +1,9 @@
+using ClosedXML.Excel;
 using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Text;
 
 namespace FreightSystem.Api.Controllers;
@@ -104,13 +106,39 @@ public class ReportsController : ControllerBase
             csv.AppendLine($"{s.Id},{s.TrackingNumber},{s.Status},{s.Mode},{s.ETD?.ToString("u") ?? ""},{s.ETA?.ToString("u") ?? ""},{s.CustomerId},{s.CreatedAt:u}");
         }
 
-        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-        var contentType = "text/csv";
-        var fileName = format.ToLower() == "excel" ? "shipments.xlsx" : "shipments.csv";
         if (format.ToLower() == "excel")
-            contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Shipments");
+            ws.Cell(1, 1).Value = "Id";
+            ws.Cell(1, 2).Value = "TrackingNumber";
+            ws.Cell(1, 3).Value = "Status";
+            ws.Cell(1, 4).Value = "Mode";
+            ws.Cell(1, 5).Value = "ETD";
+            ws.Cell(1, 6).Value = "ETA";
+            ws.Cell(1, 7).Value = "CustomerId";
+            ws.Cell(1, 8).Value = "CreatedAt";
 
-        return File(bytes, contentType, fileName);
+            for (int i = 0; i < shipments.Count; i++)
+            {
+                var s = shipments[i];
+                ws.Cell(i + 2, 1).Value = s.Id;
+                ws.Cell(i + 2, 2).Value = s.TrackingNumber;
+                ws.Cell(i + 2, 3).Value = s.Status.ToString();
+                ws.Cell(i + 2, 4).Value = s.Mode.ToString();
+                ws.Cell(i + 2, 5).Value = s.ETD?.ToString("u") ?? "";
+                ws.Cell(i + 2, 6).Value = s.ETA?.ToString("u") ?? "";
+                ws.Cell(i + 2, 7).Value = s.CustomerId;
+                ws.Cell(i + 2, 8).Value = s.CreatedAt.ToString("u");
+            }
+
+            using var ms = new MemoryStream();
+            workbook.SaveAs(ms);
+            return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "shipments.xlsx");
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+        return File(bytes, "text/csv", "shipments.csv");
     }
 }
 

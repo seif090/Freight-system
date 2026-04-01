@@ -56,6 +56,26 @@ namespace FreightSystem.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.TrackingNumber == trackingNumber);
         }
 
+        public async Task<IEnumerable<Shipment>> SearchAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return await GetAllAsync();
+
+            query = query.Trim().ToLowerInvariant();
+            return await _dbContext.Shipments
+                .Where(x => x.TrackingNumber.ToLower().Contains(query)
+                    || x.Status.ToString().ToLower().Contains(query)
+                    || x.Mode.ToString().ToLower().Contains(query)
+                    || x.Customer.Name.ToLower().Contains(query)
+                    || x.PortOfLoading.ToLower().Contains(query)
+                    || x.PortOfDischarge.ToLower().Contains(query))
+                .Include(x => x.Customer)
+                .Include(x => x.Supplier)
+                .Include(x => x.Details)
+                .Include(x => x.Documents)
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(Shipment shipment)
         {
             _dbContext.Shipments.Update(shipment);

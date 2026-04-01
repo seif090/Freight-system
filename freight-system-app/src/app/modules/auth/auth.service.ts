@@ -9,7 +9,13 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
   expiresAt: string;
+}
+
+export interface RefreshRequest {
+  token: string;
+  refreshToken: string;
 }
 
 @Injectable({
@@ -24,6 +30,23 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
       tap(response => {
         localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('auth_refresh', response.refreshToken);
+        localStorage.setItem('auth_expires', response.expiresAt);
+      })
+    );
+  }
+
+  refreshToken(): Observable<LoginResponse> {
+    const token = this.getToken();
+    const refreshToken = localStorage.getItem('auth_refresh');
+    if (!token || !refreshToken) {
+      throw new Error('No token or refresh token available');
+    }
+
+    return this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, { token, refreshToken }).pipe(
+      tap(response => {
+        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem('auth_refresh', response.refreshToken);
         localStorage.setItem('auth_expires', response.expiresAt);
       })
     );
@@ -31,6 +54,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_refresh');
     localStorage.removeItem('auth_expires');
   }
 

@@ -187,3 +187,11 @@ C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\sv
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\tr-TR\Hangfire.Core.resources.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\zh-TW\Hangfire.Core.resources.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\zh\Hangfire.Core.resources.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\ClosedXML.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\ClosedXML.Parser.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\DocumentFormat.OpenXml.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\DocumentFormat.OpenXml.Framework.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\ExcelNumberFormat.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\RBush.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\SixLabors.Fonts.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\System.IO.Packaging.dll

@@ -45,6 +45,11 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/documents/documents.component').then((c) => c.DocumentsComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
+  {
+    path: 'search',
+    loadComponent: () => import('./modules/search/search.component').then((c) => c.SearchComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'shipments' },
 ];

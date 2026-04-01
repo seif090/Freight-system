@@ -7,6 +7,7 @@ namespace FreightSystem.Application.Interfaces
         Task<Shipment?> GetByIdAsync(int id);
         Task<Shipment?> GetByTrackingNumberAsync(string trackingNumber);
         Task<IEnumerable<Shipment>> GetAllAsync();
+        Task<IEnumerable<Shipment>> SearchAsync(string query);
         Task AddAsync(Shipment shipment);
         Task UpdateAsync(Shipment shipment);
         Task DeleteAsync(Shipment shipment);
