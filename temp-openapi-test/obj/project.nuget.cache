@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "Fx3dRydlers=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\seaif\\Desktop\\Freight system\\temp-openapi-test\\temp-openapi-test.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\seaif\\.nuget\\packages\\microsoft.extensions.apidescription.server\\10.0.0\\microsoft.extensions.apidescription.server.10.0.0.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\microsoft.openapi\\3.5.1\\microsoft.openapi.3.5.1.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.7\\swashbuckle.aspnetcore.10.1.7.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.7\\swashbuckle.aspnetcore.swagger.10.1.7.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.7\\swashbuckle.aspnetcore.swaggergen.10.1.7.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\10.1.7\\swashbuckle.aspnetcore.swaggerui.10.1.7.nupkg.sha512"
+  ],
+  "logs": []
+}

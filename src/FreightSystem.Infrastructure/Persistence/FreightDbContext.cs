@@ -16,10 +16,35 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<Document> Documents => Set<Document>();
         public DbSet<Invoice> Invoices => Set<Invoice>();
         public DbSet<InvoiceItem> InvoiceItems => Set<InvoiceItem>();
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Role> Roles => Set<Role>();
+        public DbSet<UserRole> UserRoles => Set<UserRole>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Username).IsRequired();
+                entity.HasIndex(x => x.Username).IsUnique();
+                entity.Property(x => x.PasswordHash).IsRequired();
+                entity.HasMany(x => x.UserRoles).WithOne(x => x.User).HasForeignKey(x => x.UserId);
+            });
+
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Name).IsRequired();
+                entity.HasIndex(x => x.Name).IsUnique();
+                entity.HasMany(x => x.UserRoles).WithOne(x => x.Role).HasForeignKey(x => x.RoleId);
+            });
+
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.HasKey(x => new { x.UserId, x.RoleId });
+            });
 
             modelBuilder.Entity<Shipment>(entity =>
             {
@@ -68,6 +93,16 @@ namespace FreightSystem.Infrastructure.Persistence
             });
 
             modelBuilder.Entity<InvoiceItem>(entity => { entity.HasKey(x => x.Id); });
+
+            // Seed roles to support database-backed RBAC
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Admin" },
+                new Role { Id = 2, Name = "Operation" },
+                new Role { Id = 3, Name = "Sales" },
+                new Role { Id = 4, Name = "Accountant" }
+            );
+
+            // We intentionally do not seed users with plain passwords here; seeding is managed on startup levers via data seeder.
         }
     }
 }

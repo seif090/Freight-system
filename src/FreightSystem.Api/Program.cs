@@ -1,6 +1,8 @@
 using FreightSystem.Application.Interfaces;
+using FreightSystem.Api.Filters;
 using FreightSystem.Infrastructure.Persistence;
 using FreightSystem.Infrastructure.Repositories;
+using FreightSystem.Infrastructure.Services;
 using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +21,8 @@ builder.Services.AddDbContext<FreightDbContext>(options =>
 
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config =>
@@ -85,9 +89,14 @@ builder.Services.AddSwaggerGen(options =>
             Url = new Uri("https://example.com")
         }
     });
+
+    options.OperationFilter<XDescriptionOperationFilter>();
 });
 
 var app = builder.Build();
+
+// Seed database with default roles and users
+await DbInitializer.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

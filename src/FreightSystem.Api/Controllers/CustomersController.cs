@@ -1,3 +1,4 @@
+using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,7 @@ public class CustomersController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin,Sales")]
+    [XDescription("Retrieve all customers.", "استرجاع جميع العملاء.")]
     public async Task<IActionResult> GetAll()
     {
         var customers = await _customerRepository.GetAllAsync();

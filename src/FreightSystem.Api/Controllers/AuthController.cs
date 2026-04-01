@@ -1,7 +1,10 @@
+using FreightSystem.Api.Filters;
+using FreightSystem.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace FreightSystem.Api.Controllers;
@@ -15,38 +18,42 @@ public record LoginResponse(string Token, DateTime ExpiresAt);
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _configuration;
+    private readonly IUserRepository _userRepository;
 
-    private static readonly List<(string Username, string Password, string Role)> Users = new()
-    {
-        ("admin", "Admin123!", "Admin"),
-        ("operation", "Op123!", "Operation"),
-        ("accountant", "Ac123!", "Accountant"),
-        ("sales", "Sales123!", "Sales")
-    };
-
-    public AuthController(IConfiguration configuration)
+    public AuthController(IConfiguration configuration, IUserRepository userRepository)
     {
         _configuration = configuration;
+        _userRepository = userRepository;
     }
 
     [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginRequest request)
+    [XDescription("Authenticate user and return JWT token.", "المصادقة على المستخدم وإرجاع رمز JWT.")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = Users.SingleOrDefault(u => u.Username == request.Username && u.Password == request.Password);
-        if (user == default)
+        var user = await _userRepository.GetByUsernameAsync(request.Username);
+        if (user == null || !user.IsActive)
+            return Unauthorized(new { message = "اسم المستخدم أو كلمة المرور غير صحيحة" });
+
+        if (!VerifyPassword(request.Password, user.PasswordHash))
             return Unauthorized(new { message = "اسم المستخدم أو كلمة المرور غير صحيحة" });
 
         var jwtKey = _configuration.GetValue<string>("JwtSettings:Secret") ?? "default_super_secure_key_please_change";
         var jwtIssuer = _configuration.GetValue<string>("JwtSettings:Issuer") ?? "FreightSystem";
         var expiryMinutes = _configuration.GetValue<int>("JwtSettings:ExpiryMinutes");
 
+        var roles = await _userRepository.GetUserRolesAsync(user.Id);
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim("role", user.Role),
             new Claim("language", "ar")
         };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim("role", role));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -61,5 +68,13 @@ public class AuthController : ControllerBase
         var encodedToken = new JwtSecurityTokenHandler().WriteToken(token);
 
         return Ok(new LoginResponse(encodedToken, token.ValidTo));
+    }
+
+    private static bool VerifyPassword(string plainPassword, string hash)
+    {
+        using var sha256 = SHA256.Create();
+        var bytes = Encoding.UTF8.GetBytes(plainPassword);
+        var computedHash = Convert.ToBase64String(sha256.ComputeHash(bytes));
+        return computedHash == hash;
     }
 }

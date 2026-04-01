@@ -38,6 +38,32 @@ export class AuthService {
     return localStorage.getItem('auth_token');
   }
 
+  getUserRoles(): string[] {
+    const token = this.getToken();
+    if (!token) return [];
+
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+
+      const roleClaim = payload['role'] ?? payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+      if (!roleClaim) return [];
+
+      if (Array.isArray(roleClaim)) {
+        return roleClaim;
+      }
+
+      if (typeof roleClaim === 'string') {
+        return roleClaim.split(',').map((x: string) => x.trim());
+      }
+
+      return [];
+    } catch {
+      return [];
+    }
+  }
+
   isLoggedIn(): boolean {
     const token = this.getToken();
     return !!token;

@@ -1,3 +1,4 @@
+using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
 using FreightSystem.Api.Hubs;
@@ -15,15 +16,18 @@ public class ShipmentsController : ControllerBase
 {
     private readonly IShipmentRepository _shipmentRepository;
     private readonly IHubContext<LiveTrackingHub> _hubContext;
+    private readonly INotificationService _notificationService;
 
-    public ShipmentsController(IShipmentRepository shipmentRepository, IHubContext<LiveTrackingHub> hubContext)
+    public ShipmentsController(IShipmentRepository shipmentRepository, IHubContext<LiveTrackingHub> hubContext, INotificationService notificationService)
     {
         _shipmentRepository = shipmentRepository;
         _hubContext = hubContext;
+        _notificationService = notificationService;
     }
 
     [HttpGet]
     [Authorize(Policy = "SalesPolicy")]
+    [XDescription("Retrieve all shipments for the current user.", "استرجاع جميع الشحنات للمستخدم الحالي.")]
     public async Task<IActionResult> GetAll()
     {
         var shipments = await _shipmentRepository.GetAllAsync();
@@ -65,6 +69,8 @@ public class ShipmentsController : ControllerBase
 
         // schedule a notification job
         BackgroundJob.Enqueue(() => Console.WriteLine($"New shipment created: {shipment.TrackingNumber}"));
+        BackgroundJob.Enqueue<INotificationService>(x => x.SendEmailAsync("ops@freightsystem.local", "Shipment Created", $"Shipment {shipment.TrackingNumber} was created."));
+        BackgroundJob.Enqueue<INotificationService>(x => x.SendSmsAsync("+201000000001", $"New shipment created: {shipment.TrackingNumber}"));
 
         return CreatedAtAction(nameof(GetById), new { id = shipment.Id }, shipment);
     }
@@ -102,6 +108,8 @@ public class ShipmentsController : ControllerBase
         });
 
         BackgroundJob.Enqueue(() => Console.WriteLine($"Shipment updated: {existing.TrackingNumber} status {existing.Status}"));
+        BackgroundJob.Enqueue<INotificationService>(x => x.SendEmailAsync("ops@freightsystem.local", "Shipment Updated", $"Shipment {existing.TrackingNumber} status changed to {existing.Status}."));
+        BackgroundJob.Enqueue<INotificationService>(x => x.SendSmsAsync("+201000000001", $"Shipment {existing.TrackingNumber} status: {existing.Status}"));
 
         return NoContent();
     }
