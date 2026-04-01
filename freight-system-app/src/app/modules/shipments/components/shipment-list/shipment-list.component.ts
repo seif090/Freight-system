@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Shipment, ShipmentService } from '../../services/shipment.service';
 
 @Component({
   selector: 'app-shipment-list',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './shipment-list.component.html',
-  styleUrl: './shipment-list.component.scss'
+  styleUrls: ['./shipment-list.component.scss']
 })
 export class ShipmentListComponent implements OnInit {
   shipments: Shipment[] = [];
