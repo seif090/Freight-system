@@ -120,6 +120,7 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Instruction).IsRequired().HasMaxLength(1024);
                 entity.Property(x => x.RoutePreviewUrl).HasMaxLength(1024);
+                entity.Property(x => x.RouteGeoJson).HasMaxLength(4096);
                 entity.Property(x => x.Priority).HasMaxLength(50);
                 entity.Property(x => x.Dispatched).HasDefaultValue(false);
             });

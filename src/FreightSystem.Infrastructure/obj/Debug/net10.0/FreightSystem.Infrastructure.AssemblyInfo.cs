@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FreightSystem.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9378a4e5a902b8d4f1c76f6458a74eda1d8fdee7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4aafed858fa110325492b7a93967db592fb49f85")]
 [assembly: System.Reflection.AssemblyProductAttribute("FreightSystem.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FreightSystem.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

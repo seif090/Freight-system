@@ -17,10 +17,26 @@ export class SignalrService {
 
     this.hubConnection.on('ShipmentUpdated', data => {
       this.shipmentUpdated$.next(data);
+      this.notifyUser(data, 'Shipment update');
     });
 
     this.hubConnection.on('ShipmentCreated', data => {
       this.shipmentUpdated$.next(data);
+      this.notifyUser(data, 'New shipment');
+    });
+  }
+
+  private async notifyUser(data: any, title: string): Promise<void> {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    const registration = await navigator.serviceWorker.ready;
+    registration.showNotification(`${title}: ${data.trackingNumber || data.shipmentId || 'Unknown'}`, {
+      body: `Status: ${data.status || 'N/A'}`,
+      icon: '/assets/icon-72x72.png',
+      data,
+      tag: 'freight-alert'
     });
   }
 }
+

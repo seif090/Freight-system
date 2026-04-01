@@ -85,8 +85,16 @@ export class AdvancedAnalyticsService {
     return this.http.post(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${shipmentId}/optimize-route`, segments);
   }
 
-  dispatchRoute(ShipmentId: number, payload: { instruction: string; routePreviewUrl: string; priority: string; markDispatched: boolean }) {
-    return this.http.patch(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${ShipmentId}/dispatch`, payload);
+  dispatchRoute(shipmentId: number, payload: { instruction: string; routePreviewUrl: string; routeGeoJson?: string; priority: string; markDispatched: boolean }) {
+    return this.http.patch(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${shipmentId}/dispatch`, payload);
+  }
+
+  getDispatchActions(page: number = 1, pageSize: number = 20) {
+    return this.http.get<any>(`https://localhost:5001/api/v1.0/advancedoperations/dispatch-actions?page=${page}&pageSize=${pageSize}`);
+  }
+
+  undoDispatchAction(actionId: number) {
+    return this.http.patch(`https://localhost:5001/api/v1.0/advancedoperations/dispatch-actions/${actionId}/undo`, {});
   }
 
   getWarehouseFacts(limit: number = 200) {

@@ -11,6 +11,7 @@ interface DispatchActionItem {
   shipmentId: number;
   instruction: string;
   routePreviewUrl: string;
+  routeGeoJson?: string;
   priority: 'Critical' | 'High' | 'Normal' | 'Low';
   dispatched: boolean;
   createdAt: string;
@@ -134,6 +135,10 @@ export class OperationsCockpitComponent implements OnInit {
           shipmentId: this.manualShipmentId,
           instruction: humanAction,
           routePreviewUrl,
+          routeGeoJson: JSON.stringify({
+            type: 'LineString',
+            coordinates: segments.map((seg: any) => [seg.startLongitude, seg.startLatitude]).concat([[segments.slice(-1)[0].endLongitude, segments.slice(-1)[0].endLatitude]])
+          }),
           priority: 'High',
           dispatched: false,
           createdAt: new Date().toISOString()
@@ -145,6 +150,7 @@ export class OperationsCockpitComponent implements OnInit {
         this.analyticsService.dispatchRoute(this.manualShipmentId, {
           instruction: humanAction,
           routePreviewUrl,
+          routeGeoJson: actionItem.routeGeoJson,
           priority: 'High',
           markDispatched: false
         }).subscribe({

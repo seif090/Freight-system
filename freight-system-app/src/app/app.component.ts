@@ -18,6 +18,14 @@ export class AppComponent implements OnInit {
   constructor(private signalr: SignalrService, private authService: AuthService) {}
 
   ngOnInit(): void {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW register failed', err));
+    }
+
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+
     this.signalr.startConnection();
     this.signalr.shipmentUpdated$.subscribe(update => {
       console.log('Live tracking event:', update);

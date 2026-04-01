@@ -92,6 +92,7 @@ namespace FreightSystem.Api.Controllers
                 ShipmentId = shipmentId,
                 Instruction = request.Instruction ?? "Manual dispatch command",
                 RoutePreviewUrl = request.RoutePreviewUrl ?? string.Empty,
+                RouteGeoJson = request.RouteGeoJson ?? string.Empty,
                 Priority = request.Priority ?? "High",
                 Dispatched = request.MarkDispatched,
                 DispatchedAt = request.MarkDispatched ? DateTime.UtcNow : null,
@@ -104,12 +105,42 @@ namespace FreightSystem.Api.Controllers
 
             return Ok(dispatchRecord);
         }
+
+        [HttpGet("dispatch-actions")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async Task<IActionResult> GetDispatchActions(int page = 1, int pageSize = 20)
+        {
+            var actions = await _dbContext.DispatchActions
+                .OrderByDescending(a => a.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var total = await _dbContext.DispatchActions.CountAsync();
+            return Ok(new { actions, page, pageSize, total });
+        }
+
+        [HttpPatch("dispatch-actions/{id:int}/undo")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async Task<IActionResult> UndoDispatch(int id)
+        {
+            var action = await _dbContext.DispatchActions.FindAsync(id);
+            if (action == null) return NotFound();
+
+            action.Dispatched = false;
+            action.Priority = "High";
+            action.DispatchedAt = null;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(action);
+        }
     }
 
     public class DispatchRequest
     {
         public string? Instruction { get; set; }
         public string? RoutePreviewUrl { get; set; }
+        public string? RouteGeoJson { get; set; }
         public string? Priority { get; set; }
         public bool MarkDispatched { get; set; }
     }

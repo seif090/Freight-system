@@ -101,6 +101,11 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/dispatch-history',
+    loadComponent: () => import('./modules/analytics/dispatch-history.component').then((c) => c.DispatchHistoryComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
