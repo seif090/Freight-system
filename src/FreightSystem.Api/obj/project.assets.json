@@ -115,28 +115,6 @@
           }
         }
       },
-      "Microsoft.AspNetCore.OpenApi/10.0.3": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.OpenApi": "2.0.0"
-        },
-        "compile": {
-          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll": {
-            "related": ".xml"
-          }
-        },
-        "frameworkReferences": [
-          "Microsoft.AspNetCore.App"
-        ],
-        "build": {
-          "build/Microsoft.AspNetCore.OpenApi.targets": {}
-        }
-      },
       "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
         "type": "package",
         "compile": {
@@ -834,7 +812,7 @@
           }
         }
       },
-      "Microsoft.OpenApi/2.4.1": {
+      "Microsoft.OpenApi/3.5.1": {
         "type": "package",
         "compile": {
           "lib/net8.0/Microsoft.OpenApi.dll": {
@@ -1371,24 +1349,6 @@
         "lib/netcoreapp3.1/Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer.xml",
         "microsoft.aspnetcore.mvc.versioning.apiexplorer.5.1.0.nupkg.sha512",
         "microsoft.aspnetcore.mvc.versioning.apiexplorer.nuspec"
-      ]
-    },
-    "Microsoft.AspNetCore.OpenApi/10.0.3": {
-      "sha512": "SAvSrKDgnY5GDjDAngOXxPhUvEKlTU/0zIq8zidqHvh/xnZBPs0Vc4LqwyvnmnafNnyUaivtRABz4K4wodXfSg==",
-      "type": "package",
-      "path": "microsoft.aspnetcore.openapi/10.0.3",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "Icon.png",
-        "PACKAGE.md",
-        "THIRD-PARTY-NOTICES.TXT",
-        "analyzers/dotnet/cs/Microsoft.AspNetCore.OpenApi.SourceGenerators.dll",
-        "build/Microsoft.AspNetCore.OpenApi.targets",
-        "lib/net10.0/Microsoft.AspNetCore.OpenApi.dll",
-        "lib/net10.0/Microsoft.AspNetCore.OpenApi.xml",
-        "microsoft.aspnetcore.openapi.10.0.3.nupkg.sha512",
-        "microsoft.aspnetcore.openapi.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/8.0.0": {
@@ -3172,10 +3132,10 @@
         "microsoft.identitymodel.tokens.nuspec"
       ]
     },
-    "Microsoft.OpenApi/2.4.1": {
-      "sha512": "u7QhXCISMQuab3flasb1hoaiERmUqyWsW7tmQODyILoQ7mJV5IRGM+2KKZYo0QUfC13evEOcHAb6TPWgqEQtrw==",
+    "Microsoft.OpenApi/3.5.1": {
+      "sha512": "UkWK59fPIACeXY769xg6rM3mvwZnEmYxyGTa12vVF9N08QjKzxnkOX6l2iiOA5RL4emGX49tRX7gZMUfyHZ+/w==",
       "type": "package",
-      "path": "microsoft.openapi/2.4.1",
+      "path": "microsoft.openapi/3.5.1",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -3186,7 +3146,7 @@
         "lib/netstandard2.0/Microsoft.OpenApi.dll",
         "lib/netstandard2.0/Microsoft.OpenApi.pdb",
         "lib/netstandard2.0/Microsoft.OpenApi.xml",
-        "microsoft.openapi.2.4.1.nupkg.sha512",
+        "microsoft.openapi.3.5.1.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
     },
@@ -3728,8 +3688,8 @@
       "Microsoft.AspNetCore.Mvc.ApiExplorer >= 2.3.9",
       "Microsoft.AspNetCore.Mvc.Versioning >= 5.1.0",
       "Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer >= 5.1.0",
-      "Microsoft.AspNetCore.OpenApi >= 10.0.3",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.5",
+      "Microsoft.OpenApi >= 3.5.1",
       "Swashbuckle.AspNetCore >= 10.1.7"
     ]
   },
@@ -3810,15 +3770,15 @@
             "target": "Package",
             "version": "[5.1.0, )"
           },
-          "Microsoft.AspNetCore.OpenApi": {
-            "target": "Package",
-            "version": "[10.0.3, )"
-          },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "suppressParent": "All",
             "target": "Package",
             "version": "[10.0.5, )"
+          },
+          "Microsoft.OpenApi": {
+            "target": "Package",
+            "version": "[3.5.1, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",

@@ -9,7 +9,6 @@ C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Fr
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Azure.Core.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Azure.Identity.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Humanizer.dll
-C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.Build.Framework.dll
@@ -166,3 +165,6 @@ C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\obj\Debug\net10.0\re
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.dll
 C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Api\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll

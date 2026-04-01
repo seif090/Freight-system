@@ -44,6 +44,7 @@ public class AuthController : ControllerBase
         {
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Role, user.Role),
+            new Claim("role", user.Role),
             new Claim("language", "ar")
         };
 

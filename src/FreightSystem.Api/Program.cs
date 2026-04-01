@@ -64,45 +64,19 @@ builder.Services.AddVersionedApiExplorer(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
     {
         Version = "v1",
         Title = "Freight System API",
-        Description = "نظام إدارة الشحنات والخدمات اللوجستية (Freight Forwarding & Logistics).\n\nEnglish: Freight Forwarding & Logistics Management API.",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        Description = "نظام إدارة الشحنات والخدمات اللوجستية (Freight Forwarding & Logistics) \n\nEnglish: Freight Forwarding & Logistics Management API.",
+        Contact = new Microsoft.OpenApi.OpenApiContact
         {
             Name = "Freight System Team",
             Email = "support@freightsystem.example",
             Url = new Uri("https://example.com")
         }
     });
-
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
-        Name = "Authorization",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT"
-    });
-
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
 });
-
 
 var app = builder.Build();
 
@@ -114,7 +88,6 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Freight System API v1");
         c.RoutePrefix = string.Empty;
-        c.DocumentTitle = "Freight System API Documentation";
     });
 }
 
