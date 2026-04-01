@@ -4,7 +4,15 @@
   <form (ngSubmit)="save()">
     <label>
       Tracking Number
-      <input [(ngModel)]="shipment.trackingNumber" name="trackingNumber" />
+      <input [(ngModel)]="shipment.trackingNumber" name="trackingNumber" required />
+    </label>
+
+    <label>
+      Customer
+      <select [(ngModel)]="shipment.customerId" name="customerId" required>
+        <option [ngValue]="null" disabled selected>-- اختر عميل --</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
     </label>
 
     <label>

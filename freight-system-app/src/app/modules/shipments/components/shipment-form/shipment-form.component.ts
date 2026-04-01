@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ShipmentService, Shipment } from '../../services/shipment.service';
+import { Customer, CustomerService } from '../../../customers/services/customer.service';
 
 @Component({
   selector: 'app-shipment-form',
@@ -22,16 +23,20 @@ export class ShipmentFormComponent implements OnInit {
     containerType: 'None',
     vesselOrFlightNumber: ''
   };
+  customers: Customer[] = [];
   isEdit = false;
   error = '';
 
   constructor(
     private shipmentService: ShipmentService,
+    private customerService: CustomerService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.loadCustomers();
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
       this.isEdit = true;
@@ -40,6 +45,13 @@ export class ShipmentFormComponent implements OnInit {
         error: () => this.error = 'فشل تحميل الشحنة.'
       });
     }
+  }
+
+  loadCustomers(): void {
+    this.customerService.getCustomers().subscribe({
+      next: data => this.customers = data,
+      error: () => this.error = 'فشل تحميل قائمة العملاء.'
+    });
   }
 
   save(): void {
