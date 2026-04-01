@@ -1,0 +1,35 @@
+<section>
+  <h2>Digital Twin (Realtime Telematics)</h2>
+
+  <div>
+    <label>Shipment ID: <input type="number" [(ngModel)]="shipmentId" (change)="connectSse()" /></label>
+    <button (click)="requestRouteOptimization()">Optimize Route</button>
+    <button (click)="startVoiceAssistant()">Voice Operations Assistant</button>
+  </div>
+
+  <div>
+    <p>Voice Text: {{ voiceText }} ({{ voiceStatus }})</p>
+  </div>
+
+  <div *ngIf="routeSuggestion">
+    <h4>Route Suggestion</h4>
+    <pre>{{ routeSuggestion | json }}</pre>
+    <a [routerLink]="['/analytics/optimize']">Open optimizer</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Time</th><th>Lat</th><th>Lon</th><th>Speed</th><th>Heading</th><th>Fuel</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let point of livePoints">
+        <td>{{ point.timestamp }}</td>
+        <td>{{ point.latitude }}</td>
+        <td>{{ point.longitude }}</td>
+        <td>{{ point.speedKmh }} km/h</td>
+        <td>{{ point.headingDegrees }}°</td>
+        <td>{{ point.fuelLevel }}%</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

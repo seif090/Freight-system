@@ -97,6 +97,10 @@ export class AdvancedAnalyticsService {
     return this.http.patch(`https://localhost:5001/api/v1.0/advancedoperations/dispatch-actions/${actionId}/undo`, {});
   }
 
+  scheduleMaintenance(request: { shipmentId: number; vehicleId: number; maintenanceDate: string; description: string }) {
+    return this.http.post(`https://localhost:5001/api/v1.0/advancedoperations/schedule-maintenance`, request);
+  }
+
   getWarehouseFacts(limit: number = 200) {
     return this.http.get<WarehouseFact[]>(`${this.baseUrl}/warehouse/facts?limit=${limit}`);
   }

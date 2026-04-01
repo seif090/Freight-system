@@ -106,6 +106,11 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/digital-twin',
+    loadComponent: () => import('./modules/analytics/digital-twin.component').then((c) => c.DigitalTwinComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]

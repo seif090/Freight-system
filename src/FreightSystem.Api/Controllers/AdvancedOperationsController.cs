@@ -72,6 +72,23 @@ namespace FreightSystem.Api.Controllers
             return Ok(risky);
         }
 
+        [HttpPost("schedule-maintenance")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async Task<IActionResult> ScheduleMaintenance([FromBody] MaintenanceScheduleRequest request)
+        {
+            // For this sample we just return and could persist in a MaintenanceSchedule table.
+            return Ok(new
+            {
+                id = Guid.NewGuid(),
+                request.ShipmentId,
+                request.VehicleId,
+                request.MaintenanceDate,
+                request.Description,
+                scheduledAt = DateTime.UtcNow,
+                status = "Scheduled"
+            });
+        }
+
         [HttpPost("shipments/{shipmentId:int}/optimize-route")]
         [Authorize(Policy = "OperationPolicy")]
         public async Task<IActionResult> OptimizeRoute(int shipmentId, [FromBody] IEnumerable<Core.Entities.RouteSegment> plannedSegments)
@@ -143,5 +160,13 @@ namespace FreightSystem.Api.Controllers
         public string? RouteGeoJson { get; set; }
         public string? Priority { get; set; }
         public bool MarkDispatched { get; set; }
+    }
+
+    public class MaintenanceScheduleRequest
+    {
+        public int ShipmentId { get; set; }
+        public int VehicleId { get; set; }
+        public DateTime MaintenanceDate { get; set; }
+        public string Description { get; set; } = string.Empty;
     }
 }

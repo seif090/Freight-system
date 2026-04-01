@@ -61,5 +61,23 @@ namespace FreightSystem.Api.Controllers
             var status = await _aiTrainingService.GetTrainingStatusAsync();
             return Ok(new { status });
         }
+
+        [HttpGet("live-stream")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async IAsyncEnumerable<TelematicsData> LiveStream([FromQuery] int shipmentId)
+        {
+            var lastTimestamp = DateTime.UtcNow.AddMinutes(-10);
+            while (true)
+            {
+                var records = await _telematicsService.GetByShipmentAsync(shipmentId);
+                var newRecords = records.Where(x => x.Timestamp > lastTimestamp).OrderBy(x => x.Timestamp).ToList();
+                foreach (var record in newRecords)
+                {
+                    lastTimestamp = record.Timestamp;
+                    yield return record;
+                }
+                await Task.Delay(2000);
+            }
+        }
     }
 }
