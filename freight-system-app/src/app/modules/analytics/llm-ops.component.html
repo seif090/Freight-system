@@ -16,4 +16,21 @@
     <h3>Delay Duration Regression</h3>
     <canvas #regressionChart></canvas>
   </div>
+
+  <div class="chart-box">
+    <h3>Anomaly Threshold (minutes)</h3>
+    <input type="range" min="0" max="120" step="5" [(ngModel)]="anomalyThreshold" (input)="onThresholdChange()" />
+    <span>{{ anomalyThreshold }} min</span>
+    <div *ngIf="delayAnomalyClusters">
+      <p>Total Matches: {{ delayAnomalyClusters.totalMatches }}</p>
+      <p>Total Clusters: {{ delayAnomalyClusters.clusterHistory?.totalClusters || 0 }}</p>
+      <p>Avg Delay: {{ delayAnomalyClusters.clusterHistory?.avgDelayMinutes | number:'1.1-1' }} min</p>
+      <h4>Clusters by status</h4>
+      <ul>
+        <li *ngFor="let c of delayAnomalyClusters.clusters">
+          {{ c.status }}: {{ c.count }} (avg {{ c.avgDelay | number:'1.1-1' }})
+        </li>
+      </ul>
+    </div>
+  </div>
 </section>

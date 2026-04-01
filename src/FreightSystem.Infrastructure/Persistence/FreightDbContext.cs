@@ -31,6 +31,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<BlockchainAudit> BlockchainAudits => Set<BlockchainAudit>();
         public DbSet<RouteDeviationAlert> RouteDeviationAlerts => Set<RouteDeviationAlert>();
         public DbSet<DelayHistory> DelayHistories => Set<DelayHistory>();
+        public DbSet<DelayAnomalyClusterHistory> DelayAnomalyClusterHistories => Set<DelayAnomalyClusterHistory>();
         public DbSet<LlmSpendLog> LlmSpendLogs => Set<LlmSpendLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -166,6 +167,17 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.Property(x => x.TenantId).HasMaxLength(100);
                 entity.Property(x => x.CreatedAt).IsRequired();
                 entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<DelayAnomalyClusterHistory>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.WeekStarting).IsRequired();
+                entity.Property(x => x.ThresholdMinutes).IsRequired();
+                entity.Property(x => x.TotalClusters).IsRequired();
+                entity.Property(x => x.TotalMatches).IsRequired();
+                entity.Property(x => x.AvgDelayMinutes).IsRequired();
+                entity.Property(x => x.CreatedAt).IsRequired();
             });
 
             modelBuilder.Entity<LlmSpendLog>(entity =>

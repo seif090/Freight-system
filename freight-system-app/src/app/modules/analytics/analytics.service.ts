@@ -28,4 +28,8 @@ export class AnalyticsService {
   getDelayRegression(sampleSize = 100): Observable<any> {
     return this.http.get(`${this.apiUrl}/delay-regression?sampleSize=${sampleSize}`);
   }
+
+  getDelayAnomalyClusters(thresholdMinutes = 30): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delay-history/anomalies?thresholdMinutes=${thresholdMinutes}`);
+  }
 }

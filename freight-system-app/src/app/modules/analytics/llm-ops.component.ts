@@ -1,12 +1,13 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from './analytics.service';
 import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-llm-ops',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './llm-ops.component.html'
 })
 export class LlmOpsComponent implements OnInit {
@@ -17,13 +18,14 @@ export class LlmOpsComponent implements OnInit {
   llmSpendData: any;
   delayRisk: any;
   delayRegression: any;
+  delayAnomalyClusters: any;
 
   tokenCostChartInstance: any;
   riskTrendChartInstance: any;
   regressionChartInstance: any;
 
+  anomalyThreshold = 30;
   error = '';
-
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
@@ -43,6 +45,8 @@ export class LlmOpsComponent implements OnInit {
       error: err => this.error = err?.message || 'Failed to load delay risk'
     });
 
+    this.loadAnomalyClusters();
+
     this.analyticsService.getDelayRegression().subscribe({
       next: data => {
         this.delayRegression = data;
@@ -50,6 +54,17 @@ export class LlmOpsComponent implements OnInit {
       },
       error: err => this.error = err?.message || 'Failed to load regression'
     });
+  }
+
+  loadAnomalyClusters(): void {
+    this.analyticsService.getDelayAnomalyClusters(this.anomalyThreshold).subscribe({
+      next: data => this.delayAnomalyClusters = data,
+      error: err => this.error = err?.message || 'Failed to load anomaly clusters'
+    });
+  }
+
+  onThresholdChange(): void {
+    this.loadAnomalyClusters();
   }
 
   private drawTokenCostChart(): void {

@@ -1,7 +1,9 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
 using FreightSystem.Api.Hubs;
+using FreightSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace FreightSystem.Api.Services
 {
@@ -12,19 +14,22 @@ namespace FreightSystem.Api.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<LiveTrackingHub> _hubContext;
+        private readonly FreightDbContext _dbContext;
 
         public ShipmentMonitoringService(
             IShipmentRepository shipmentRepository,
             INotificationService notificationService,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            IHubContext<LiveTrackingHub> hubContext)
+            IHubContext<LiveTrackingHub> hubContext,
+            FreightDbContext dbContext)
         {
             _shipmentRepository = shipmentRepository;
             _notificationService = notificationService;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _hubContext = hubContext;
+            _dbContext = dbContext;
         }
 
         public async Task SendOverdueShipmentAlertsAsync()
@@ -51,6 +56,46 @@ namespace FreightSystem.Api.Services
                 Message = message,
                 Time = now
             });
+        }
+
+        public async Task AutoPopulateDelayHistoryForMissedEtaAsync()
+        {
+            var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
+            var now = DateTime.UtcNow;
+
+            var missed = shipments
+                .Where(s => s.ETA.HasValue && s.ETA.Value < now && s.Status != Core.Entities.ShipmentStatus.Delivered && s.Status != Core.Entities.ShipmentStatus.Cancelled)
+                .ToList();
+
+            foreach (var shipment in missed)
+            {
+                var existing = await _dbContext.DelayHistories
+                    .Where(x => x.ShipmentId == shipment.Id && x.CreatedAt > now.AddDays(-7))
+                    .FirstOrDefaultAsync();
+
+                if (existing != null) continue;
+
+                var durationHours = shipment.ETD.HasValue ? (now - shipment.ETD.Value).TotalHours : 0;
+                var delayMinutes = (now - shipment.ETA.Value).TotalMinutes;
+
+                var record = new Core.Entities.DelayHistory
+                {
+                    ShipmentId = shipment.Id,
+                    ETD = shipment.ETD,
+                    ETA = shipment.ETA,
+                    ActualDeparture = shipment.ETD ?? now,
+                    ActualArrival = now,
+                    DurationHours = durationHours,
+                    DelayMinutes = delayMinutes,
+                    Status = shipment.Status.ToString(),
+                    TenantId = shipment.TenantId,
+                    CreatedAt = now
+                };
+
+                _dbContext.DelayHistories.Add(record);
+            }
+
+            await _dbContext.SaveChangesAsync();
         }
 
         private async Task SendSlackNotificationAsync(IEnumerable<Shipment> overdue, string summary)

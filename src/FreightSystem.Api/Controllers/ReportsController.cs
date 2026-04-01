@@ -242,7 +242,36 @@ public class ReportsController : ControllerBase
             MinDelay = g.Min(x => x.DelayMinutes)
         }).ToList();
 
-        return Ok(new { thresholdMinutes, totalMatches = matches.Count, clusters, matches });
+        var weekStart = DateTime.UtcNow.Date.AddDays(-(int)DateTime.UtcNow.DayOfWeek);
+        var clusterHistory = new Core.Entities.DelayAnomalyClusterHistory
+        {
+            WeekStarting = weekStart,
+            ThresholdMinutes = thresholdMinutes,
+            TotalClusters = clusters.Count,
+            TotalMatches = matches.Count,
+            AvgDelayMinutes = matches.Any() ? matches.Average(x => x.DelayMinutes) : 0,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.DelayAnomalyClusterHistories.Add(clusterHistory);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new { thresholdMinutes, totalMatches = matches.Count, clusters, matches, clusterHistory });
+    }
+
+    [HttpGet("anomaly-cluster-history")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get delay anomaly cluster history.", "الحصول على تاريخ مجموعات العيوب في التأخير.")]
+    public async Task<IActionResult> GetDelayAnomalyClusterHistory([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+    {
+        var query = _dbContext.DelayAnomalyClusterHistories.AsQueryable();
+
+        if (from.HasValue) query = query.Where(x => x.CreatedAt >= from.Value.ToUniversalTime());
+        if (to.HasValue) query = query.Where(x => x.CreatedAt <= to.Value.ToUniversalTime());
+
+        var results = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+
+        return Ok(new { count = results.Count, results });
     }
 
     [HttpGet("export/shipments")]
