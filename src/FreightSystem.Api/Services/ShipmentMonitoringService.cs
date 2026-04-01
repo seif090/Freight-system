@@ -1,5 +1,7 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
+using FreightSystem.Api.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FreightSystem.Api.Services
 {
@@ -9,17 +11,20 @@ namespace FreightSystem.Api.Services
         private readonly INotificationService _notificationService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly IHubContext<LiveTrackingHub> _hubContext;
 
         public ShipmentMonitoringService(
             IShipmentRepository shipmentRepository,
             INotificationService notificationService,
             IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHubContext<LiveTrackingHub> hubContext)
         {
             _shipmentRepository = shipmentRepository;
             _notificationService = notificationService;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _hubContext = hubContext;
         }
 
         public async Task SendOverdueShipmentAlertsAsync()
@@ -39,6 +44,13 @@ namespace FreightSystem.Api.Services
             await _notificationService.SendSmsAsync("+201000000001", message);
 
             await SendSlackNotificationAsync(overdue, message);
+
+            await _hubContext.Clients.All.SendAsync("OverdueAlert", new
+            {
+                Count = overdue.Count,
+                Message = message,
+                Time = now
+            });
         }
 
         private async Task SendSlackNotificationAsync(IEnumerable<Shipment> overdue, string summary)

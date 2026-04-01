@@ -4,6 +4,7 @@ namespace FreightSystem.Core.Entities
     public enum TransportMode { Sea, Air, Land }
     public enum ShipmentStatus { Pending, InTransit, Delivered, Cancelled }
     public enum ContainerType { None, TwentyFt, FortyFt, LCL, FCL }
+    public enum ShipmentPriority { Low, Normal, High, Critical }
 
     public class Shipment
     {
@@ -12,6 +13,7 @@ namespace FreightSystem.Core.Entities
         public ShipmentType Type { get; set; }
         public TransportMode Mode { get; set; }
         public ShipmentStatus Status { get; set; } = ShipmentStatus.Pending;
+        public ShipmentPriority Priority { get; set; } = ShipmentPriority.Normal;
 
         public string PortOfLoading { get; set; } = string.Empty;
         public string PortOfDischarge { get; set; } = string.Empty;

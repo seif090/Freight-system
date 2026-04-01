@@ -63,6 +63,7 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasIndex(x => x.TrackingNumber).IsUnique();
                 entity.HasMany(x => x.Details).WithOne(x => x.Shipment).HasForeignKey(x => x.ShipmentId);
                 entity.HasMany(x => x.Documents).WithOne(x => x.Shipment).HasForeignKey(x => x.ShipmentId);
+                entity.Property(x => x.Priority).HasDefaultValue(Core.Entities.ShipmentPriority.Normal);
             });
 
             modelBuilder.Entity<ShipmentDetail>(entity => { entity.HasKey(x => x.Id); });

@@ -3,9 +3,12 @@ using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
 using FreightSystem.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Hangfire;
+using System.Globalization;
+using System.IO;
 
 namespace FreightSystem.Api.Controllers;
 
@@ -32,6 +35,52 @@ public class ShipmentsController : ControllerBase
     {
         var shipments = await _shipmentRepository.GetAllAsync();
         return Ok(shipments);
+    }
+
+    [HttpPost("import")]
+    [Authorize(Policy = "AdminPolicy")]
+    [XDescription("Bulk import shipments from CSV. Headers: TrackingNumber,Type,Mode,Status,PortOfLoading,PortOfDischarge,ETD,ETA,Priority,CustomerId,SupplierId", "استيراد دفعة من ملفات CSV مع الحقول.")]
+    public async Task<IActionResult> ImportCsv([FromForm] IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("CSV file is required.");
+
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream);
+
+        var lineNumber = 0;
+        var added = 0;
+
+        while (!reader.EndOfStream)
+        {
+            var line = await reader.ReadLineAsync();
+            lineNumber++;
+            if (lineNumber == 1 || string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var parts = line.Split(',');
+            if (parts.Length < 11) continue;
+
+            var shipment = new Shipment
+            {
+                TrackingNumber = parts[0].Trim(),
+                Type = Enum.TryParse<ShipmentType>(parts[1].Trim(), true, out var type) ? type : ShipmentType.Domestic,
+                Mode = Enum.TryParse<TransportMode>(parts[2].Trim(), true, out var mode) ? mode : TransportMode.Land,
+                Status = Enum.TryParse<ShipmentStatus>(parts[3].Trim(), true, out var status) ? status : ShipmentStatus.Pending,
+                PortOfLoading = parts[4].Trim(),
+                PortOfDischarge = parts[5].Trim(),
+                ETD = DateTime.TryParse(parts[6].Trim(), out var etd) ? etd : (DateTime?)null,
+                ETA = DateTime.TryParse(parts[7].Trim(), out var eta) ? eta : (DateTime?)null,
+                Priority = Enum.TryParse<ShipmentPriority>(parts[8].Trim(), true, out var priority) ? priority : ShipmentPriority.Normal,
+                CustomerId = int.TryParse(parts[9].Trim(), out var cid) ? cid : 0,
+                SupplierId = int.TryParse(parts[10].Trim(), out var sid) ? sid : (int?)null,
+            };
+
+            await _shipmentRepository.AddAsync(shipment);
+            added++;
+        }
+
+        return Ok(new { imported = added });
     }
 
     [HttpGet("{id:int}")]

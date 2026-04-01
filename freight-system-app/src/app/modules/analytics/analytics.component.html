@@ -1,0 +1,10 @@
+<div>
+  <h2>Advanced Analytics</h2>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  <div *ngIf="summary">
+    <p>Total Shipments: {{ summary.total }}</p>
+    <p>Overdue Shipments: {{ summary.overdue }}</p>
+    <p>High/Critical Priority: {{ summary.highPriority }}</p>
+    <p>Predicted Delay: {{ summary.predictedDelayPercent }}%</p>
+  </div>
+</div>
