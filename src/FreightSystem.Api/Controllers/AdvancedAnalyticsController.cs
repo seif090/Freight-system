@@ -1,4 +1,6 @@
 using FreightSystem.Application.Interfaces;
+using FreightSystem.Api.Filters;
+using FreightSystem.Api.Services;
 using FreightSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,43 +17,37 @@ namespace FreightSystem.Api.Controllers
         private readonly IGeoService _geoService;
         private readonly IMLService _mlService;
         private readonly IEventBus _eventBus;
+    private readonly ShipmentMonitoringService _monitoringService;
 
-        public AdvancedAnalyticsController(FreightDbContext dbContext, IGeoService geoService, IMLService mlService, IEventBus eventBus)
-        {
-            _dbContext = dbContext;
-            _geoService = geoService;
-            _mlService = mlService;
-            _eventBus = eventBus;
-        }
+    public AdvancedAnalyticsController(FreightDbContext dbContext, IGeoService geoService, IMLService mlService, IEventBus eventBus, ShipmentMonitoringService monitoringService)
+    {
+        _dbContext = dbContext;
+        _geoService = geoService;
+        _mlService = mlService;
+        _eventBus = eventBus;
+        _monitoringService = monitoringService;
+    }
 
-        [HttpPost("geofences")]
-        [Authorize(Policy = "OperationPolicy")]
-        public async Task<IActionResult> AddGeofence([FromBody] Core.Entities.Geofence geofence)
-        {
-            if (geofence is null) return BadRequest();
-            geofence.CreatedAt = DateTime.UtcNow;
-            _dbContext.Geofences.Add(geofence);
-            await _dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetGeofence), new { id = geofence.Id }, geofence);
-        }
+    [HttpPost("geofences")]
+    [Authorize(Policy = "OperationPolicy")]
+    public async Task<IActionResult> AddGeofence([FromBody] Core.Entities.Geofence geofence)
+    {
+        if (geofence is null) return BadRequest();
+        geofence.CreatedAt = DateTime.UtcNow;
+        _dbContext.Geofences.Add(geofence);
+        await _dbContext.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetGeofence), new { id = geofence.Id }, geofence);
+    }
 
-        [HttpGet("geofences")]
-        [Authorize(Policy = "SalesPolicy")]
-        public async Task<IActionResult> GetGeofences()
-        {
-            var geofences = await _dbContext.Geofences.OrderByDescending(g => g.CreatedAt).ToListAsync();
-            return Ok(geofences);
-        }
+    [HttpGet("geofences/{id:int}")]
+    [Authorize(Policy = "SalesPolicy")]
+    public async Task<IActionResult> GetGeofence(int id)
+    {
+        var geofence = await _dbContext.Geofences.FindAsync(id);
+        return geofence == null ? NotFound() : Ok(geofence);
+    }
 
-        [HttpGet("geofences/{id:int}")]
-        [Authorize(Policy = "SalesPolicy")]
-        public async Task<IActionResult> GetGeofence(int id)
-        {
-            var geofence = await _dbContext.Geofences.FindAsync(id);
-            return geofence == null ? NotFound() : Ok(geofence);
-        }
-
-        [HttpGet("shipments/{shipmentId:int}/geofence-check")]
+    [HttpGet("shipments/{shipmentId:int}/geofence-check")]
         [Authorize(Policy = "OperationPolicy")]
         public async Task<IActionResult> GeofenceCheck(int shipmentId)
         {
@@ -143,6 +139,26 @@ namespace FreightSystem.Api.Controllers
 
             var response = await _mlService.AnalyzeDelayAsync(shipment);
             return Ok(response);
+        }
+
+        [HttpPost("shipments/missed-eta-populate")]
+        [Authorize(Policy = "AdminPolicy")]
+        [XDescription("Manually trigger filling delay history for missed ETA shipments.", "تنشيط يدوي لتعبئة سجل التأخير للشحنات التي فاتتها ETA.")]
+        public async Task<IActionResult> PopulateDelayHistoryNow()
+        {
+            await _monitoringService.AutoPopulateDelayHistoryForMissedEtaAsync();
+            return Ok(new { success = true, message = "Delay history refresh triggered" });
+        }
+
+        [HttpGet("delay-history/cluster-history")]
+        [Authorize(Policy = "SalesPolicy")]
+        public async Task<IActionResult> GetDelayAnomalyClusterHistory([FromQuery]DateTime? from = null, [FromQuery]DateTime? to = null)
+        {
+            var query = _dbContext.DelayAnomalyClusterHistories.AsQueryable();
+            if (from.HasValue) query = query.Where(x => x.CreatedAt >= from.Value.ToUniversalTime());
+            if (to.HasValue) query = query.Where(x => x.CreatedAt <= to.Value.ToUniversalTime());
+            var data = await query.OrderBy(x => x.WeekStarting).ToListAsync();
+            return Ok(data);
         }
 
         [HttpPost("shipments/{shipmentId:int}/stream-history")]

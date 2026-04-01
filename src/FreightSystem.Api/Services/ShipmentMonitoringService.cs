@@ -63,6 +63,12 @@ namespace FreightSystem.Api.Services
             var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
             var now = DateTime.UtcNow;
 
+            // cleanup old anomaly history (90 days retention)
+            var retention = now.AddDays(-90);
+            var oldClusters = _dbContext.DelayAnomalyClusterHistories.Where(x => x.CreatedAt < retention);
+            _dbContext.DelayAnomalyClusterHistories.RemoveRange(oldClusters);
+            await _dbContext.SaveChangesAsync();
+
             var missed = shipments
                 .Where(s => s.ETA.HasValue && s.ETA.Value < now && s.Status != Core.Entities.ShipmentStatus.Delivered && s.Status != Core.Entities.ShipmentStatus.Cancelled)
                 .ToList();

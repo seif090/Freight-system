@@ -14,11 +14,13 @@ export class LlmOpsComponent implements OnInit {
   @ViewChild('tokenCostChart') tokenCostChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('riskTrendChart') riskTrendChart?: ElementRef<HTMLCanvasElement>;
   @ViewChild('regressionChart') regressionChart?: ElementRef<HTMLCanvasElement>;
+  @ViewChild('anomalyClusterChart') anomalyClusterChart?: ElementRef<HTMLCanvasElement>;
 
   llmSpendData: any;
   delayRisk: any;
   delayRegression: any;
   delayAnomalyClusters: any;
+  anomalyClusterHistory: any;
 
   tokenCostChartInstance: any;
   riskTrendChartInstance: any;
@@ -26,6 +28,8 @@ export class LlmOpsComponent implements OnInit {
 
   anomalyThreshold = 30;
   error = '';
+  anomalyClusterChartInstance: any;
+
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
@@ -46,6 +50,7 @@ export class LlmOpsComponent implements OnInit {
     });
 
     this.loadAnomalyClusters();
+    this.loadAnomalyClusterHistory();
 
     this.analyticsService.getDelayRegression().subscribe({
       next: data => {
@@ -53,6 +58,27 @@ export class LlmOpsComponent implements OnInit {
         setTimeout(() => this.drawRegressionChart(), 0);
       },
       error: err => this.error = err?.message || 'Failed to load regression'
+    });
+  }
+
+  loadAnomalyClusterHistory(): void {
+    this.analyticsService.getDelayAnomalyClusterHistory().subscribe({
+      next: data => {
+        this.anomalyClusterHistory = data;
+        setTimeout(() => this.drawAnomalyClusterHistoryChart(), 0);
+      },
+      error: err => this.error = err?.message || 'Failed to load cluster history'
+    });
+  }
+
+  runManualPopulate(): void {
+    this.analyticsService.manualPopulateDelayHistory().subscribe({
+      next: r => {
+        this.error = '';
+        this.loadAnomalyClusters();
+        this.loadAnomalyClusterHistory();
+      },
+      error: err => this.error = err?.message || 'Manual populate failed'
     });
   }
 
@@ -131,7 +157,8 @@ export class LlmOpsComponent implements OnInit {
 
     const points = (this.delayRegression.samples || []).map((sample: any) => ({ x: sample.hours, y: sample.delay }));
     const lineX = points.map((p: any) => p.x);
-    const minX = Math.min(...lineX); const maxX = Math.max(...lineX);
+    const minX = Math.min(...lineX);
+    const maxX = Math.max(...lineX);
     const slope = this.delayRegression.slope;
     const intercept = this.delayRegression.intercept;
     const line = [
@@ -154,6 +181,36 @@ export class LlmOpsComponent implements OnInit {
           y: { title: { display: true, text: 'Delay Minutes' } }
         },
         plugins: { title: { display: true, text: 'Delay vs Duration Regression' } }
+      }
+    });
+  }
+
+  private drawAnomalyClusterHistoryChart(): void {
+    if (!this.anomalyClusterHistory || !this.anomalyClusterChart?.nativeElement) return;
+
+    if (this.anomalyClusterChartInstance) this.anomalyClusterChartInstance.destroy();
+
+    const labels = (this.anomalyClusterHistory || []).map((item: any) => new Date(item.weekStarting).toLocaleDateString());
+    const clusterCount = (this.anomalyClusterHistory || []).map((item: any) => item.totalClusters);
+    const matchCount = (this.anomalyClusterHistory || []).map((item: any) => item.totalMatches);
+
+    this.anomalyClusterChartInstance = new Chart(this.anomalyClusterChart.nativeElement.getContext('2d')!, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Clusters', data: clusterCount, backgroundColor: '#e9c46a' },
+          { label: 'Matches', data: matchCount, backgroundColor: '#2a9d8f' }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: { display: true, text: 'Anomaly Cluster History (weekly)' }
+        },
+        scales: {
+          y: { title: { display: true, text: 'Count' } }
+        }
       }
     });
   }

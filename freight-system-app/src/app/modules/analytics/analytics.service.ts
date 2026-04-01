@@ -32,4 +32,15 @@ export class AnalyticsService {
   getDelayAnomalyClusters(thresholdMinutes = 30): Observable<any> {
     return this.http.get(`${this.apiUrl}/delay-history/anomalies?thresholdMinutes=${thresholdMinutes}`);
   }
+
+  getDelayAnomalyClusterHistory(from?: string, to?: string): Observable<any> {
+    let params = '';
+    if (from) params += `from=${encodeURIComponent(from)}&`;
+    if (to) params += `to=${encodeURIComponent(to)}&`;
+    return this.http.get(`${this.apiUrl}/delay-history/cluster-history?${params}`);
+  }
+
+  manualPopulateDelayHistory(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/shipments/missed-eta-populate`, {});
+  }
 }
