@@ -38,7 +38,7 @@ public class ShipmentsController : ControllerBase
         if (shipment is null)
             return BadRequest();
 
-        shipment.TrackingNumber = shipment.TrackingNumber?.Trim();
+        shipment.TrackingNumber = (shipment.TrackingNumber ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(shipment.TrackingNumber))
         {
             shipment.TrackingNumber = $"TRK-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
