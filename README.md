@@ -85,6 +85,10 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 - Route optimization endpoint: `GET /api/v1.0/shipments/route-suggestion?origin=...&destination=...`.
 - Predictive analytics summary at `GET /api/v1.0/analytics/summary`.
 - Live `OverdueAlert` event on SignalR notify.
+- Leaflet map route tracking page: `/map`.
+- Rate limit + API key manager endpoints: `GET /api/v1.0/apikey`, `POST /api/v1.0/apikey/create`.
+- Offline mobile sync endpoint: `POST /api/v1.0/shipments/offline-sync`.
+- Audit GC archive endpoint: `POST /api/v1.0/audit/archive?days=30`.
 
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FreightSystem.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2cd837f70983e3081e7677e61bfe497a62eb4be3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4ebd6dc129f9051a1e584946b7bd68d9f92afcd9")]
 [assembly: System.Reflection.AssemblyProductAttribute("FreightSystem.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FreightSystem.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

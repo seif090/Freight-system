@@ -55,6 +55,11 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/analytics/analytics.component').then((c) => c.AnalyticsComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
+  {
+    path: 'map',
+    loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'shipments' },
 ];

@@ -28,6 +28,8 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<ShipmentMonitoringService>();
+builder.Services.AddScoped<IRateLimitService, RateLimitService>();
+builder.Services.AddScoped<IApiKeyManager, ApiKeyManager>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSignalR();
@@ -118,6 +120,7 @@ if (app.Environment.IsDevelopment())
 app.UseHangfireDashboard();
 app.UseHttpsRedirection();
 app.UseTenant();
+app.UseRateLimit();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAuditLog();

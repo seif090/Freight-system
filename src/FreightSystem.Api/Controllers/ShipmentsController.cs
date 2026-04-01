@@ -191,6 +191,34 @@ public class ShipmentsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("offline-sync")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Sync offline shipment updates from mobile agent", "مزامنة تحديثات الشحنات غير المتصلة من الوكلاء المتنقلين")]
+    public async Task<IActionResult> OfflineSync([FromBody] IEnumerable<Shipment> updates)
+    {
+        if (updates == null) return BadRequest();
+
+        foreach (var item in updates)
+        {
+            var existing = await _shipmentRepository.GetByIdAsync(item.Id);
+            if (existing != null)
+            {
+                existing.CurrentLatitude = item.CurrentLatitude;
+                existing.CurrentLongitude = item.CurrentLongitude;
+                existing.Status = item.Status;
+                existing.UpdatedAt = DateTime.UtcNow;
+                await _shipmentRepository.UpdateAsync(existing);
+            }
+            else
+            {
+                item.TenantId = item.TenantId ?? "default";
+                await _shipmentRepository.AddAsync(item);
+            }
+        }
+
+        return Ok(new { processed = updates.Count() });
+    }
+
     [HttpDelete("{id:int}")]
     [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> Delete(int id)

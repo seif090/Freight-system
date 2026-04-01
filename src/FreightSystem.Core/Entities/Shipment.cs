@@ -22,6 +22,12 @@ namespace FreightSystem.Core.Entities
         public DateTime? ETA { get; set; }
         public ContainerType ContainerType { get; set; }
         public string VesselOrFlightNumber { get; set; } = string.Empty;
+        public double? OriginLatitude { get; set; }
+        public double? OriginLongitude { get; set; }
+        public double? DestinationLatitude { get; set; }
+        public double? DestinationLongitude { get; set; }
+        public double? CurrentLatitude { get; set; }
+        public double? CurrentLongitude { get; set; }
 
         public int CustomerId { get; set; }
         public Customer? Customer { get; set; }
