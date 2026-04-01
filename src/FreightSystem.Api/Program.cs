@@ -44,6 +44,7 @@ builder.Services.AddScoped<IAiTrainingService, AiTrainingService>();
 builder.Services.AddScoped<IDeviationService, DeviationService>();
 builder.Services.AddScoped<IAssistantService, AssistantService>();
 builder.Services.AddHttpClient<IMLService, MlStreamingService>();
+builder.Services.AddHttpClient<IAssistantService, AssistantService>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config =>

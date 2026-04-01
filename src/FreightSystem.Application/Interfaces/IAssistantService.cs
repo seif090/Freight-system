@@ -13,6 +13,7 @@ namespace FreightSystem.Application.Interfaces
         public string Results { get; set; } = string.Empty;
         public string NextAction { get; set; } = string.Empty;
         public bool Success { get; set; }
+        public int TokenUsage { get; set; }
     }
 
     public interface IAssistantService
