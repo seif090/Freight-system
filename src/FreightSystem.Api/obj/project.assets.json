@@ -36,6 +36,43 @@
             "related": ".pdb;.xml"
           }
         }
+      },
+      "FreightSystem.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "FreightSystem.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/FreightSystem.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FreightSystem.Application.dll": {}
+        }
+      },
+      "FreightSystem.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/FreightSystem.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FreightSystem.Core.dll": {}
+        }
+      },
+      "FreightSystem.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "FreightSystem.Application": "1.0.0",
+          "FreightSystem.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/FreightSystem.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FreightSystem.Infrastructure.dll": {}
+        }
       }
     }
   },
@@ -75,10 +112,28 @@
         "microsoft.openapi.2.0.0.nupkg.sha512",
         "microsoft.openapi.nuspec"
       ]
+    },
+    "FreightSystem.Application/1.0.0": {
+      "type": "project",
+      "path": "../FreightSystem.Application/FreightSystem.Application.csproj",
+      "msbuildProject": "../FreightSystem.Application/FreightSystem.Application.csproj"
+    },
+    "FreightSystem.Core/1.0.0": {
+      "type": "project",
+      "path": "../FreightSystem.Core/FreightSystem.Core.csproj",
+      "msbuildProject": "../FreightSystem.Core/FreightSystem.Core.csproj"
+    },
+    "FreightSystem.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../FreightSystem.Infrastructure/FreightSystem.Infrastructure.csproj",
+      "msbuildProject": "../FreightSystem.Infrastructure/FreightSystem.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "FreightSystem.Application >= 1.0.0",
+      "FreightSystem.Core >= 1.0.0",
+      "FreightSystem.Infrastructure >= 1.0.0",
       "Microsoft.AspNetCore.OpenApi >= 10.0.3"
     ]
   },
@@ -114,7 +169,17 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Application\\FreightSystem.Application.csproj": {
+              "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Application\\FreightSystem.Application.csproj"
+            },
+            "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Core\\FreightSystem.Core.csproj": {
+              "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Core\\FreightSystem.Core.csproj"
+            },
+            "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Infrastructure\\FreightSystem.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Infrastructure\\FreightSystem.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

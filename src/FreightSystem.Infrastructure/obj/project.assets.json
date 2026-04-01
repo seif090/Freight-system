@@ -1,11 +1,49 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "FreightSystem.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "FreightSystem.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/FreightSystem.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FreightSystem.Application.dll": {}
+        }
+      },
+      "FreightSystem.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/FreightSystem.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FreightSystem.Core.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "FreightSystem.Application/1.0.0": {
+      "type": "project",
+      "path": "../FreightSystem.Application/FreightSystem.Application.csproj",
+      "msbuildProject": "../FreightSystem.Application/FreightSystem.Application.csproj"
+    },
+    "FreightSystem.Core/1.0.0": {
+      "type": "project",
+      "path": "../FreightSystem.Core/FreightSystem.Core.csproj",
+      "msbuildProject": "../FreightSystem.Core/FreightSystem.Core.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "FreightSystem.Application >= 1.0.0",
+      "FreightSystem.Core >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\seaif\\.nuget\\packages\\": {},
@@ -39,7 +77,14 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Application\\FreightSystem.Application.csproj": {
+              "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Application\\FreightSystem.Application.csproj"
+            },
+            "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Core\\FreightSystem.Core.csproj": {
+              "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Core\\FreightSystem.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
