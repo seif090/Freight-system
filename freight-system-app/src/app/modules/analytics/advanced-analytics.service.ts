@@ -85,6 +85,10 @@ export class AdvancedAnalyticsService {
     return this.http.post(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${shipmentId}/optimize-route`, segments);
   }
 
+  dispatchRoute(ShipmentId: number, payload: { instruction: string; routePreviewUrl: string; priority: string; markDispatched: boolean }) {
+    return this.http.patch(`https://localhost:5001/api/v1.0/advancedoperations/shipments/${ShipmentId}/dispatch`, payload);
+  }
+
   getWarehouseFacts(limit: number = 200) {
     return this.http.get<WarehouseFact[]>(`${this.baseUrl}/warehouse/facts?limit=${limit}`);
   }

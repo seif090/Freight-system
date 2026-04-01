@@ -7,6 +7,16 @@ import { AdvancedAnalyticsService } from './advanced-analytics.service';
 import { ShipmentService } from '../shipments/services/shipment.service';
 import { SignalrService } from '../../core/signalr.service';
 
+interface DispatchActionItem {
+  shipmentId: number;
+  instruction: string;
+  routePreviewUrl: string;
+  priority: 'Critical' | 'High' | 'Normal' | 'Low';
+  dispatched: boolean;
+  createdAt: string;
+  dispatchedAt?: string;
+}
+
 @Component({
   selector: 'app-operations-cockpit',
   standalone: true,
@@ -26,8 +36,10 @@ export class OperationsCockpitComponent implements OnInit {
   manualRouteJson = JSON.stringify([
     { segmentOrder: 1, startLatitude: 30.0, startLongitude: 31.0, endLatitude: 31.0, endLongitude: 32.0, distanceKm: 100 }
   ], null, 2);
-  actionItems: string[] = [];
+  actionItems: DispatchActionItem[] = [];
   optimizing = false;
+  toastMessage = '';
+  toastType: 'success' | 'danger' = 'success';
 
   constructor(
     private analyticsService: AdvancedAnalyticsService,
@@ -37,6 +49,7 @@ export class OperationsCockpitComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadMetrics();
+    this.loadActionItems();
     this.signalr.shipmentUpdated$.subscribe(update => {
       this.alerts.unshift(`Realtime event: ${update.trackingNumber || update.shipmentId || 'Shipment'} updated.`);
       if (this.alerts.length > 10) this.alerts.pop();
@@ -97,7 +110,7 @@ export class OperationsCockpitComponent implements OnInit {
 
   manualOptimizeRoute(): void {
     if (!this.manualShipmentId || !this.manualRouteJson) {
-      this.actionItems.unshift('Specify shipment ID and route payload before optimization.');
+      this.toast('Specify shipment ID and route payload before optimization.', 'danger');
       return;
     }
 
@@ -105,7 +118,7 @@ export class OperationsCockpitComponent implements OnInit {
     try {
       segments = JSON.parse(this.manualRouteJson);
     } catch (error) {
-      this.actionItems.unshift('Route JSON is invalid.');
+      this.toast('Route JSON is invalid.', 'danger');
       return;
     }
 
@@ -114,22 +127,94 @@ export class OperationsCockpitComponent implements OnInit {
       next: (result: any) => {
         this.optimizing = false;
         const now = new Date().toLocaleTimeString();
-        const nextAction = `Dispatch ASAP: shipment ${this.manualShipmentId} route optimized at ${now}. Apply segment order ${result.optimizedTrajectory?.map((s: any) => s.segmentOrder).join(', ')}.`;
-        this.actionItems.unshift(nextAction);
+        const routePreviewUrl = `https://www.google.com/maps/dir/${segments.map((seg: any) => `${seg.startLatitude},${seg.startLongitude}`).join('/')}/${segments.slice(-1)[0].endLatitude},${segments.slice(-1)[0].endLongitude}`;
+        const humanAction = `Reroute ${this.manualShipmentId}: apply optimized route (${result.optimizedTrajectory?.length || 0} segments).`;
 
-        // Edit if desired to include generated instruction.
-        this.actionItems.unshift(`Reroute instruction: use optimized route strategy for shipment ${this.manualShipmentId}.`);
+        const actionItem: DispatchActionItem = {
+          shipmentId: this.manualShipmentId,
+          instruction: humanAction,
+          routePreviewUrl,
+          priority: 'High',
+          dispatched: false,
+          createdAt: new Date().toISOString()
+        };
+
+        this.actionItems.unshift(actionItem);
+        this.saveActionItems();
+
+        this.analyticsService.dispatchRoute(this.manualShipmentId, {
+          instruction: humanAction,
+          routePreviewUrl,
+          priority: 'High',
+          markDispatched: false
+        }).subscribe({
+          next: () => this.toast('Manual command created successfully.', 'success'),
+          error: err => this.toast(`Dispatch endpoint error: ${err?.message || 'unknown'}`, 'danger')
+        });
       },
       error: err => {
         this.optimizing = false;
-        this.actionItems.unshift(`Optimization failed: ${err?.message || 'unknown error'}`);
+        this.toast(`Optimization failed: ${err?.message || 'unknown error'}`, 'danger');
       }
     });
   }
 
   dispatchAsap(index: number): void {
-    const action = this.actionItems[index];
-    this.actionItems[index] = `DISPATCHED [ASAP] - ${action}`;
+    const item = this.actionItems[index];
+    if (!item) return;
+
+    item.dispatched = true;
+    item.priority = 'Critical';
+    item.dispatchedAt = new Date().toISOString();
+    this.toast(`Dispatched ASAP: ${item.instruction}`, 'success');
+
+    this.saveActionItems();
+
+    this.analyticsService.dispatchRoute(item.shipmentId, {
+      instruction: item.instruction,
+      routePreviewUrl: item.routePreviewUrl || '',
+      priority: item.priority,
+      markDispatched: true
+    }).subscribe({
+      next: () => {},
+      error: err => this.toast(`Dispatch patch error: ${err?.message || 'unknown'}`, 'danger')
+    });
+
+    this.sortActions();
+  }
+
+  private toast(message: string, type: 'success' | 'danger' = 'success'): void {
+    this.toastMessage = message;
+    this.toastType = type;
+    setTimeout(() => this.toastMessage = '', 4000);
+  }
+
+  private loadActionItems(): void {
+    const raw = localStorage.getItem('operationsCockpitActions');
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as DispatchActionItem[];
+      this.actionItems = parsed.map(x => ({
+        ...x,
+        priority: x.priority || 'Normal',
+        dispatched: x.dispatched || false
+      }));
+    } catch {
+      this.actionItems = [];
+    }
+    this.sortActions();
+  }
+
+  private saveActionItems(): void {
+    localStorage.setItem('operationsCockpitActions', JSON.stringify(this.actionItems));
+  }
+
+  private sortActions(): void {
+    const p: Record<DispatchActionItem['priority'], number> = { Critical: 0, High: 1, Normal: 2, Low: 3 };
+    this.actionItems.sort((a, b) => {
+      return (p[a.priority] || 99) - (p[b.priority] || 99);
+    });
   }
 }
+
 

@@ -20,12 +20,19 @@
     <button (click)="manualOptimizeRoute()" [disabled]="optimizing">{{ optimizing ? 'Optimizing...' : 'Manual Optimize & Dispatch' }}</button>
   </section>
 
+  <section class="toast" *ngIf="toastMessage">
+    <div [ngClass]="{'toast-success': toastType === 'success', 'toast-danger': toastType === 'danger'}">{{ toastMessage }}</div>
+  </section>
+
   <section class="next-actions">
     <h3>Prioritized Next Actions</h3>
     <ul>
-      <li *ngFor="let action of actionItems; index as i">
-        {{ action }}
-        <button (click)="dispatchAsap(i)">Dispatch ASAP</button>
+      <li *ngFor="let action of actionItems; index as i" [ngClass]="{'dispatched': action.dispatched}">
+        <div><strong>{{ action.priority }}</strong>: {{ action.instruction }}</div>
+        <div>
+          <a *ngIf="action.routePreviewUrl" [href]="action.routePreviewUrl" target="_blank">Route preview</a>
+          <button (click)="dispatchAsap(i)" [disabled]="action.dispatched">Dispatch ASAP</button>
+        </div>
       </li>
       <li *ngIf="!actionItems.length">No actions yet.</li>
     </ul>

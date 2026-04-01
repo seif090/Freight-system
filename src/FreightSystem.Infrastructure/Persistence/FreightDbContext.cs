@@ -26,6 +26,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<WarehouseShipmentFact> WarehouseShipmentFacts => Set<WarehouseShipmentFact>();
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
         public DbSet<MaintenanceEvent> MaintenanceEvents => Set<MaintenanceEvent>();
+        public DbSet<DispatchAction> DispatchActions => Set<DispatchAction>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -112,6 +113,15 @@ namespace FreightSystem.Infrastructure.Persistence
             {
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Description).HasMaxLength(500);
+            });
+
+            modelBuilder.Entity<DispatchAction>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Instruction).IsRequired().HasMaxLength(1024);
+                entity.Property(x => x.RoutePreviewUrl).HasMaxLength(1024);
+                entity.Property(x => x.Priority).HasMaxLength(50);
+                entity.Property(x => x.Dispatched).HasDefaultValue(false);
             });
 
             modelBuilder.Entity<Customer>(entity =>

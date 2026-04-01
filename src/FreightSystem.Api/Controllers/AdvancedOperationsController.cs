@@ -79,5 +79,38 @@ namespace FreightSystem.Api.Controllers
             var result = await _routeOptimizationService.OptimizeRouteAsync(shipmentId, plannedSegments);
             return Ok(result);
         }
+
+        [HttpPatch("shipments/{shipmentId:int}/dispatch")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async Task<IActionResult> DispatchRoute(int shipmentId, [FromBody] DispatchRequest request)
+        {
+            var shipment = await _dbContext.Shipments.FindAsync(shipmentId);
+            if (shipment == null) return NotFound();
+
+            var dispatchRecord = new Core.Entities.DispatchAction
+            {
+                ShipmentId = shipmentId,
+                Instruction = request.Instruction ?? "Manual dispatch command",
+                RoutePreviewUrl = request.RoutePreviewUrl ?? string.Empty,
+                Priority = request.Priority ?? "High",
+                Dispatched = request.MarkDispatched,
+                DispatchedAt = request.MarkDispatched ? DateTime.UtcNow : null,
+                TenantId = shipment.TenantId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.DispatchActions.Add(dispatchRecord);
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(dispatchRecord);
+        }
+    }
+
+    public class DispatchRequest
+    {
+        public string? Instruction { get; set; }
+        public string? RoutePreviewUrl { get; set; }
+        public string? Priority { get; set; }
+        public bool MarkDispatched { get; set; }
     }
 }
