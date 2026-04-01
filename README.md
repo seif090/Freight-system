@@ -67,6 +67,12 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 - Forms template-driven تستخدم `required`, `type='email'`, و تدقيق بسيط.
 - UI يظهر رسالة على خطأ.
 
+## New Features Added
+- Dashboard API endpoint: `GET /api/v1.0/reports/dashboard`.
+- Swagger x-description added via `XDescriptionAttribute` for Arabic/English description.
+- Hangfire email/SMS mock notifications via `INotificationService`.
+- RBAC from DB: user/role/userrole entities plus dynamic JWT claim roles and `DbInitializer` seeding.
+
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`
 SignalR endpoint: `https://localhost:5001/hubs/tracking`
