@@ -1,0 +1,22 @@
+<section>
+  <h2>Operations Cockpit</h2>
+
+  <div class="cockpit-grid">
+    <div class="card"><h3>Vehicles</h3><p>{{ vehicleCount }}</p><a routerLink="/analytics/vehicles">Open Fleet</a></div>
+    <div class="card"><h3>Maintenance Risk</h3><p>{{ maintenanceRiskCount }}</p><a routerLink="/analytics/time-to-failure">Open Risk</a></div>
+    <div class="card"><h3>Shipments</h3><p>{{ shipmentCount }}</p><a routerLink="/shipments">Open Shipments</a></div>
+    <div class="card"><h3>Route Optimization</h3><p>Go to wizard</p><a routerLink="/analytics/optimize">Open</a></div>
+  </div>
+
+  <div>
+    <canvas #etaCanvas width="800" height="300"></canvas>
+  </div>
+
+  <section>
+    <h3>Realtime Banner</h3>
+    <ul>
+      <li *ngFor="let note of alerts">{{ note }}</li>
+      <li *ngIf="!alerts.length">No live alerts yet.</li>
+    </ul>
+  </section>
+</section>

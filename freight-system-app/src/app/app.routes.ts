@@ -96,6 +96,11 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/cockpit',
+    loadComponent: () => import('./modules/analytics/operations-cockpit.component').then((c) => c.OperationsCockpitComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
