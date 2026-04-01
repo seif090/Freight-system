@@ -30,6 +30,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<TelematicsData> Telematics => Set<TelematicsData>();
         public DbSet<BlockchainAudit> BlockchainAudits => Set<BlockchainAudit>();
         public DbSet<RouteDeviationAlert> RouteDeviationAlerts => Set<RouteDeviationAlert>();
+        public DbSet<LlmSpendLog> LlmSpendLogs => Set<LlmSpendLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -148,6 +149,19 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasKey(x => x.Id);
                 entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
                 entity.Property(x => x.Notes).HasMaxLength(512);
+            });
+
+            modelBuilder.Entity<LlmSpendLog>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Timestamp).IsRequired();
+                entity.Property(x => x.UserId).HasMaxLength(128);
+                entity.Property(x => x.Input).HasMaxLength(4000);
+                entity.Property(x => x.Provider).HasMaxLength(100);
+                entity.Property(x => x.Command).HasMaxLength(100);
+                entity.Property(x => x.TokenUsage).IsRequired();
+                entity.Property(x => x.EstimatedCostUsd).HasColumnType("decimal(18,6)");
+                entity.Property(x => x.Success).IsRequired();
             });
 
             modelBuilder.Entity<Customer>(entity =>

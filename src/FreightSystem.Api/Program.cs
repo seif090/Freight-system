@@ -34,6 +34,7 @@ builder.Services.AddScoped<IApiKeyManager, ApiKeyManager>();
 
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
 builder.Services.Configure<MlSettings>(builder.Configuration.GetSection("Ml"));
+builder.Services.Configure<LlmSettings>(builder.Configuration.GetSection("Llm"));
 builder.Services.AddSingleton<IEventBus, KafkaEventBus>();
 builder.Services.AddScoped<IGeoService, GeoService>();
 builder.Services.AddScoped<IMLService, MlStreamingService>();

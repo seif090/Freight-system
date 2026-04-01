@@ -1,7 +1,11 @@
 using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
+using FreightSystem.Core.Settings;
+using FreightSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace FreightSystem.Api.Controllers;
 
@@ -12,10 +16,14 @@ namespace FreightSystem.Api.Controllers;
 public class AnalyticsController : ControllerBase
 {
     private readonly IShipmentRepository _shipmentRepository;
+    private readonly FreightDbContext _dbContext;
+    private readonly LlmSettings _llmSettings;
 
-    public AnalyticsController(IShipmentRepository shipmentRepository)
+    public AnalyticsController(IShipmentRepository shipmentRepository, FreightDbContext dbContext, IOptions<LlmSettings> llmOptions)
     {
         _shipmentRepository = shipmentRepository;
+        _dbContext = dbContext;
+        _llmSettings = llmOptions.Value;
     }
 
     [HttpGet("summary")]
@@ -59,5 +67,60 @@ public class AnalyticsController : ControllerBase
         };
 
         return Ok(slo);
+    }
+
+    [HttpGet("llm-spend")]
+    [XDescription("Get LLM spend logs by date range","استرداد سجلات الإنفاق على LLM بحسب النطاق الزمني")]
+    public async Task<IActionResult> GetLlmSpend([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+    {
+        var query = _dbContext.LlmSpendLogs.AsQueryable();
+
+        if (from.HasValue)
+        {
+            query = query.Where(x => x.Timestamp >= from.Value.ToUniversalTime());
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(x => x.Timestamp <= to.Value.ToUniversalTime());
+        }
+
+        var entries = await query.OrderByDescending(x => x.Timestamp).ToListAsync();
+
+        var spendSummary = new
+        {
+            TotalEntries = entries.Count,
+            TotalTokenUsage = entries.Sum(x => x.TokenUsage),
+            TotalCostUsd = entries.Sum(x => x.EstimatedCostUsd),
+            ByProvider = entries.GroupBy(x => x.Provider).Select(g => new
+            {
+                Provider = g.Key,
+                Entries = g.Count(),
+                TokenUsage = g.Sum(x => x.TokenUsage),
+                CostUsd = g.Sum(x => x.EstimatedCostUsd)
+            }).ToList(),
+            ByDay = entries.GroupBy(x => x.Timestamp.Date).Select(g => new
+            {
+                Date = g.Key,
+                Entries = g.Count(),
+                TokenUsage = g.Sum(x => x.TokenUsage),
+                CostUsd = g.Sum(x => x.EstimatedCostUsd)
+            }).OrderBy(x => x.Date).ToList()
+        };
+
+        return Ok(new { entries, spendSummary });
+    }
+
+    [HttpGet("llm-model-pricing")]
+    [XDescription("Get LLM model cost per token table","الحصول على جدول تكلفة نموذج LLM لكل توكن")]
+    public IActionResult GetLlmModelPricing()
+    {
+        return Ok(new
+        {
+            _llmSettings.ModelCostPerToken,
+            DefaultProvider = _llmSettings.Provider,
+            OpenAiModel = _llmSettings.OpenAiModel,
+            ClaudeModel = _llmSettings.ClaudeModel
+        });
     }
 }

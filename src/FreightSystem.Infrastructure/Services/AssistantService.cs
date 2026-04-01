@@ -1,5 +1,7 @@
 using FreightSystem.Application.Interfaces;
+using FreightSystem.Core.Entities;
 using FreightSystem.Core.Settings;
+using FreightSystem.Infrastructure.Persistence;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
@@ -14,13 +16,18 @@ namespace FreightSystem.Infrastructure.Services
         private readonly LlmSettings _llmSettings;
         private readonly IEventBus _eventBus;
         private readonly ILogger<AssistantService> _logger;
+        private readonly FreightDbContext _dbContext;
 
-        public AssistantService(HttpClient httpClient, IOptions<LlmSettings> llmOptions, IEventBus eventBus, ILogger<AssistantService> logger)
+        private static readonly object _circuitLock = new();
+        private static readonly Dictionary<string, (int FailCount, DateTime FirstFailure, DateTime? LockedUntil)> _circuitBreaker = new();
+
+        public AssistantService(HttpClient httpClient, IOptions<LlmSettings> llmOptions, IEventBus eventBus, ILogger<AssistantService> logger, FreightDbContext dbContext)
         {
             _httpClient = httpClient;
             _llmSettings = llmOptions.Value;
             _eventBus = eventBus;
             _logger = logger;
+            _dbContext = dbContext;
         }
 
         public async Task<AssistantResponse> ExecuteAsync(AssistantRequest request)
@@ -84,6 +91,27 @@ namespace FreightSystem.Infrastructure.Services
                 _logger.LogWarning(ex, "Unable to publish llm-assistant-usage event.");
             }
 
+            // Persistent spend log
+            try
+            {
+                _dbContext.LlmSpendLogs.Add(new LlmSpendLog
+                {
+                    Timestamp = DateTime.UtcNow,
+                    UserId = request.UserId,
+                    Input = request.Input,
+                    Provider = response.Provider,
+                    Command = response.Command,
+                    TokenUsage = response.TokenUsage,
+                    EstimatedCostUsd = response.EstimatedCostUsd,
+                    Success = response.Success
+                });
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to persist llm spend log.");
+            }
+
             return response;
         }
 
@@ -96,26 +124,145 @@ namespace FreightSystem.Infrastructure.Services
 
             if (requestedProvider == "anthropic" || requestedProvider == "claude")
             {
-                result = await InvokeClaudeAsync(prompt);
-                if (result.Success) return result;
+                if (IsCircuitOpen("claude"))
+                {
+                    _logger.LogWarning("Circuit open for Claude provider, falling back to OpenAI.");
+                    result = new LlmResult(false, string.Empty, string.Empty, string.Empty, 0, 0.0, "claude", "Circuit breaker open");
+                }
+                else
+                {
+                    result = await InvokeClaudeAsync(prompt);
+                }
 
+                if (result.Success)
+                {
+                    ResetProviderCircuit("claude");
+                    return result;
+                }
+
+                RecordProviderFailure("claude", result.ErrorMessage);
                 _logger.LogWarning("Primary provider Claude/Anthropic failed. Attempting OpenAI fallback: {Error}", result.ErrorMessage);
 
-                result = await InvokeOpenAiAsync(prompt);
-                if (result.Success) return result;
-            }
-            else // openai preferred (default) or anything else
-            {
-                result = await InvokeOpenAiAsync(prompt);
-                if (result.Success) return result;
+                if (IsCircuitOpen("openai"))
+                {
+                    _logger.LogWarning("Circuit open for OpenAI provider as well, aborting.");
+                    return new LlmResult(false, "All LLM providers circuit-open.", "chat", "Provide command with reroute/gantt/crew dispatch.", 0, 0.0, requestedProvider, "Circuits open");
+                }
 
+                result = await InvokeOpenAiAsync(prompt);
+                if (result.Success)
+                {
+                    ResetProviderCircuit("openai");
+                    return result;
+                }
+
+                RecordProviderFailure("openai", result.ErrorMessage);
+            }
+            else
+            {
+                if (IsCircuitOpen("openai"))
+                {
+                    _logger.LogWarning("Circuit open for OpenAI provider, falling back to Claude.");
+                    result = new LlmResult(false, string.Empty, string.Empty, string.Empty, 0, 0.0, "openai", "Circuit breaker open");
+                }
+                else
+                {
+                    result = await InvokeOpenAiAsync(prompt);
+                }
+
+                if (result.Success)
+                {
+                    ResetProviderCircuit("openai");
+                    return result;
+                }
+
+                RecordProviderFailure("openai", result.ErrorMessage);
                 _logger.LogWarning("Primary provider OpenAI failed. Attempting Claude fallback: {Error}", result.ErrorMessage);
 
+                if (IsCircuitOpen("claude"))
+                {
+                    _logger.LogWarning("Circuit open for Claude provider as well, aborting.");
+                    return new LlmResult(false, "All LLM providers circuit-open.", "chat", "Provide command with reroute/gantt/crew dispatch.", 0, 0.0, requestedProvider, "Circuits open");
+                }
+
                 result = await InvokeClaudeAsync(prompt);
-                if (result.Success) return result;
+                if (result.Success)
+                {
+                    ResetProviderCircuit("claude");
+                    return result;
+                }
+
+                RecordProviderFailure("claude", result.ErrorMessage);
             }
 
             return new LlmResult(false, "LLM keys not configured or all providers failed.", "chat", "Provide command with reroute/gantt/crew dispatch.", 0, 0.0, requestedProvider, result.ErrorMessage);
+        }
+
+        private bool IsCircuitOpen(string provider)
+        {
+            provider = provider.ToLowerInvariant();
+            lock (_circuitLock)
+            {
+                if (!_circuitBreaker.TryGetValue(provider, out var state)) return false;
+                if (state.LockedUntil.HasValue && state.LockedUntil.Value > DateTime.UtcNow)
+                {
+                    return true;
+                }
+
+                if (state.LockedUntil.HasValue && state.LockedUntil.Value <= DateTime.UtcNow)
+                {
+                    _circuitBreaker.Remove(provider);
+                    return false;
+                }
+
+                if (state.FailCount >= _llmSettings.CircuitBreakerFailureThreshold && DateTime.UtcNow - state.FirstFailure <= _llmSettings.CircuitBreakerWindow)
+                {
+                    _circuitBreaker[provider] = (state.FailCount, state.FirstFailure, DateTime.UtcNow + _llmSettings.CircuitBreakerResetDuration);
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        private void RecordProviderFailure(string provider, string error)
+        {
+            provider = provider.ToLowerInvariant();
+            lock (_circuitLock)
+            {
+                if (!_circuitBreaker.TryGetValue(provider, out var state))
+                {
+                    _circuitBreaker[provider] = (1, DateTime.UtcNow, null);
+                    return;
+                }
+
+                if (DateTime.UtcNow - state.FirstFailure > _llmSettings.CircuitBreakerWindow)
+                {
+                    _circuitBreaker[provider] = (1, DateTime.UtcNow, null);
+                    return;
+                }
+
+                var newCount = state.FailCount + 1;
+                var maybeLockedUntil = state.LockedUntil;
+
+                if (newCount >= _llmSettings.CircuitBreakerFailureThreshold)
+                {
+                    maybeLockedUntil = DateTime.UtcNow + _llmSettings.CircuitBreakerResetDuration;
+                }
+
+                _circuitBreaker[provider] = (newCount, state.FirstFailure, maybeLockedUntil);
+            }
+
+            _logger.LogWarning("LLM provider {Provider} failure (#{Count}) - error: {Error}", provider, _circuitBreaker[provider].FailCount, error);
+        }
+
+        private void ResetProviderCircuit(string provider)
+        {
+            provider = provider.ToLowerInvariant();
+            lock (_circuitLock)
+            {
+                _circuitBreaker.Remove(provider);
+            }
         }
 
         private async Task<LlmResult> InvokeOpenAiAsync(string prompt)
@@ -149,7 +296,8 @@ namespace FreightSystem.Infrastructure.Services
                 int tokens = obj?.usage?.total_tokens ?? (text.Length / 4);
                 var command = ExtractCommand(text);
                 var nextAction = ExtractNextAction(text);
-                var cost = Math.Round(tokens * 0.000002, 6, MidpointRounding.AwayFromZero);
+                var pricePerToken = _llmSettings.ModelCostPerToken.TryGetValue(_llmSettings.OpenAiModel, out var openaiCost) ? openaiCost : 0.000002;
+                var cost = Math.Round(tokens * pricePerToken, 6, MidpointRounding.AwayFromZero);
 
                 return new LlmResult(true, text, command, nextAction, tokens, cost, "openai", string.Empty);
             }
@@ -185,7 +333,8 @@ namespace FreightSystem.Infrastructure.Services
                 int tokens = text.Length / 4;
                 var command = ExtractCommand(text);
                 var nextAction = ExtractNextAction(text);
-                var cost = Math.Round(tokens * 0.0000018, 6, MidpointRounding.AwayFromZero);
+                var pricePerToken = _llmSettings.ModelCostPerToken.TryGetValue(_llmSettings.ClaudeModel, out var claudeCost) ? claudeCost : 0.0000018;
+                var cost = Math.Round(tokens * pricePerToken, 6, MidpointRounding.AwayFromZero);
 
                 return new LlmResult(true, text, command, nextAction, tokens, cost, "claude", string.Empty);
             }
