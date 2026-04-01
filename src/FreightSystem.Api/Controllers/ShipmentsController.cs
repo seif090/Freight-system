@@ -2,6 +2,7 @@ using FreightSystem.Api.Filters;
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
 using FreightSystem.Api.Hubs;
+using FreightSystem.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +21,16 @@ public class ShipmentsController : ControllerBase
     private readonly IShipmentRepository _shipmentRepository;
     private readonly IHubContext<LiveTrackingHub> _hubContext;
     private readonly INotificationService _notificationService;
+    private readonly FreightDbContext _dbContext;
+    private readonly IEventBus _eventBus;
 
-    public ShipmentsController(IShipmentRepository shipmentRepository, IHubContext<LiveTrackingHub> hubContext, INotificationService notificationService)
+    public ShipmentsController(IShipmentRepository shipmentRepository, IHubContext<LiveTrackingHub> hubContext, INotificationService notificationService, FreightDbContext dbContext, IEventBus eventBus)
     {
         _shipmentRepository = shipmentRepository;
         _hubContext = hubContext;
         _notificationService = notificationService;
+        _dbContext = dbContext;
+        _eventBus = eventBus;
     }
 
     [HttpGet]
@@ -171,9 +176,21 @@ public class ShipmentsController : ControllerBase
         existing.VesselOrFlightNumber = request.VesselOrFlightNumber;
         existing.CustomerId = request.CustomerId;
         existing.SupplierId = request.SupplierId;
+        existing.CurrentLatitude = request.CurrentLatitude;
+        existing.CurrentLongitude = request.CurrentLongitude;
+        existing.TenantId = request.TenantId ?? existing.TenantId;
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _shipmentRepository.UpdateAsync(existing);
+
+        await _dbContext.ShipmentLocationHistory.AddAsync(new Core.Entities.ShipmentLocationHistory {
+            ShipmentId = existing.Id,
+            Timestamp = DateTime.UtcNow,
+            Latitude = existing.CurrentLatitude ?? 0,
+            Longitude = existing.CurrentLongitude ?? 0,
+            Status = existing.Status
+        });
+        await _dbContext.SaveChangesAsync();
 
         // Live tracking notification
         await _hubContext.Clients.Group($"Shipment_{existing.Id}").SendAsync("ShipmentUpdated", new
@@ -187,6 +204,8 @@ public class ShipmentsController : ControllerBase
         BackgroundJob.Enqueue(() => Console.WriteLine($"Shipment updated: {existing.TrackingNumber} status {existing.Status}"));
         BackgroundJob.Enqueue<INotificationService>(x => x.SendEmailAsync("ops@freightsystem.local", "Shipment Updated", $"Shipment {existing.TrackingNumber} status changed to {existing.Status}."));
         BackgroundJob.Enqueue<INotificationService>(x => x.SendSmsAsync("+201000000001", $"Shipment {existing.TrackingNumber} status: {existing.Status}"));
+
+        await _eventBus.PublishAsync("shipment-updated", new { existing.Id, existing.TrackingNumber, existing.Status, existing.CurrentLatitude, existing.CurrentLongitude, existing.UpdatedAt });
 
         return NoContent();
     }
@@ -217,6 +236,23 @@ public class ShipmentsController : ControllerBase
         }
 
         return Ok(new { processed = updates.Count() });
+    }
+
+    [HttpGet("{id:int}/history")]
+    [Authorize(Policy = "SalesPolicy")]
+    [XDescription("Get shipment location history for playback.", "الحصول على سجل المواقع للشحنة للتشغيل.")]
+    public IActionResult GetRouteHistory(int id)
+    {
+        var history = _dbContext.ShipmentLocationHistory
+            .Where(x => x.ShipmentId == id)
+            .OrderBy(x => x.Timestamp)
+            .Select(x => new { x.Timestamp, x.Latitude, x.Longitude, x.Status })
+            .ToList();
+
+        if (!history.Any())
+            return NotFound();
+
+        return Ok(history);
     }
 
     [HttpDelete("{id:int}")]

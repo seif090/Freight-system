@@ -30,6 +30,7 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<ShipmentMonitoringService>();
 builder.Services.AddScoped<IRateLimitService, RateLimitService>();
 builder.Services.AddScoped<IApiKeyManager, ApiKeyManager>();
+builder.Services.AddSingleton<IEventBus, KafkaEventBus>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSignalR();

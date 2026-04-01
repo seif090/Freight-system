@@ -20,6 +20,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<ShipmentLocationHistory> ShipmentLocationHistory => Set<ShipmentLocationHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +65,13 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasMany(x => x.Details).WithOne(x => x.Shipment).HasForeignKey(x => x.ShipmentId);
                 entity.HasMany(x => x.Documents).WithOne(x => x.Shipment).HasForeignKey(x => x.ShipmentId);
                 entity.Property(x => x.Priority).HasDefaultValue(Core.Entities.ShipmentPriority.Normal);
+                entity.Property(x => x.TenantId).IsRequired().HasDefaultValue("default");
+            });
+
+            modelBuilder.Entity<ShipmentLocationHistory>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId);
             });
 
             modelBuilder.Entity<ShipmentDetail>(entity => { entity.HasKey(x => x.Id); });

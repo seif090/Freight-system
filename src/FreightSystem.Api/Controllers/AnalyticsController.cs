@@ -37,4 +37,27 @@ public class AnalyticsController : ControllerBase
             PredictedDelayPercent = Math.Round(predictedDelay, 1)
         });
     }
+
+    [HttpGet("slo")]
+    [XDescription("Get SLO status and breached shipments.", "الحصول على حالة SLO والشحنات التي تنتهكها.")]
+    public async Task<IActionResult> GetSlo([FromQuery] double thresholdPercent = 5)
+    {
+        var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
+        var total = Math.Max(1, shipments.Count);
+        var overdue = shipments.Count(s => s.ETA.HasValue && s.ETA.Value < DateTime.UtcNow && s.Status != Core.Entities.ShipmentStatus.Delivered && s.Status != Core.Entities.ShipmentStatus.Cancelled);
+        var currentRate = overdue * 100.0 / total;
+
+        var slo = new
+        {
+            Threshold = thresholdPercent,
+            CurrentDelayRate = Math.Round(currentRate, 2),
+            IsBreached = currentRate > thresholdPercent,
+            BreachedShipments = shipments.Where(s => s.ETA.HasValue && s.ETA.Value < DateTime.UtcNow && s.Status != Core.Entities.ShipmentStatus.Delivered && s.Status != Core.Entities.ShipmentStatus.Cancelled)
+                .Select(s => new { s.Id, s.TrackingNumber, s.Status, s.ETA, s.Priority })
+                .Take(50)
+                .ToList()
+        };
+
+        return Ok(slo);
+    }
 }
