@@ -1,0 +1,31 @@
+<div>
+  <h2>قائمة الشحنات</h2>
+
+  <div *ngIf="loading">جارٍ التحميل...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table *ngIf="!loading && !error && shipments.length" class="table">
+    <thead>
+      <tr>
+        <th>رقم التتبع</th>
+        <th>نوع</th>
+        <th>وسيلة</th>
+        <th>الحالة</th>
+        <th>POL</th>
+        <th>POD</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let shipment of shipments">
+        <td>{{ shipment.trackingNumber }}</td>
+        <td>{{ shipment.type }}</td>
+        <td>{{ shipment.mode }}</td>
+        <td>{{ shipment.status }}</td>
+        <td>{{ shipment.portOfLoading }}</td>
+        <td>{{ shipment.portOfDischarge }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && !error && !shipments.length">لا توجد شحنات بعد.</div>
+</div>
