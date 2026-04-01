@@ -1,0 +1,16 @@
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\bin\Debug\net10.0\FreightSystem.Application.deps.json
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\bin\Debug\net10.0\FreightSystem.Application.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\bin\Debug\net10.0\FreightSystem.Application.pdb
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\bin\Debug\net10.0\FreightSystem.Core.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\bin\Debug\net10.0\FreightSystem.Core.pdb
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.csproj.AssemblyReference.cache
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.AssemblyInfoInputs.cache
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.AssemblyInfo.cs
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.csproj.CoreCompileInputs.cache
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.sourcelink.json
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightS.2F68FD6B.Up2Date
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\refint\FreightSystem.Application.dll
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\FreightSystem.Application.pdb
+C:\Users\seaif\Desktop\Freight system\src\FreightSystem.Application\obj\Debug\net10.0\ref\FreightSystem.Application.dll
