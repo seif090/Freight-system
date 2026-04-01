@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Shipment, ShipmentService } from '../../services/shipment.service';
 
 @Component({
@@ -14,7 +15,7 @@ export class ShipmentListComponent implements OnInit {
   loading = false;
   error = '';
 
-  constructor(private shipmentService: ShipmentService) { }
+  constructor(private shipmentService: ShipmentService, public router: Router) { }
 
   ngOnInit(): void {
     this.fetchShipments();
@@ -32,6 +33,13 @@ export class ShipmentListComponent implements OnInit {
         console.error(err);
         this.loading = false;
       }
+    });
+  }
+
+  deleteShipment(id: number) {
+    this.shipmentService.deleteShipment(id).subscribe({
+      next: () => this.fetchShipments(),
+      error: () => this.error = 'فشل حذف الشحنة.'
     });
   }
 }

@@ -1,0 +1,62 @@
+<div>
+  <h2>{{ isEdit ? 'تعديل الشحنة' : 'إنشاء شحنة' }}</h2>
+
+  <form (ngSubmit)="save()">
+    <label>
+      Tracking Number
+      <input [(ngModel)]="shipment.trackingNumber" name="trackingNumber" />
+    </label>
+
+    <label>
+      Type
+      <select [(ngModel)]="shipment.type" name="type">
+        <option value="Import">Import</option>
+        <option value="Export">Export</option>
+        <option value="Domestic">Domestic</option>
+      </select>
+    </label>
+
+    <label>
+      Mode
+      <select [(ngModel)]="shipment.mode" name="mode">
+        <option value="Sea">Sea</option>
+        <option value="Air">Air</option>
+        <option value="Land">Land</option>
+      </select>
+    </label>
+
+    <label>
+      Status
+      <select [(ngModel)]="shipment.status" name="status">
+        <option value="Pending">Pending</option>
+        <option value="InTransit">InTransit</option>
+        <option value="Delivered">Delivered</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </label>
+
+    <label>
+      POL
+      <input [(ngModel)]="shipment.portOfLoading" name="portOfLoading" />
+    </label>
+
+    <label>
+      POD
+      <input [(ngModel)]="shipment.portOfDischarge" name="portOfDischarge" />
+    </label>
+
+    <label>
+      ETD
+      <input type="date" [(ngModel)]="shipment.etd" name="etd" />
+    </label>
+
+    <label>
+      ETA
+      <input type="date" [(ngModel)]="shipment.eta" name="eta" />
+    </label>
+
+    <button type="submit">حفظ</button>
+  </form>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+</div>

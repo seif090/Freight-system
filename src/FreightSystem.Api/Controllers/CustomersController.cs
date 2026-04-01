@@ -18,7 +18,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "SalesPolicy")]
+    [Authorize(Roles = "Admin,Sales")]
     public async Task<IActionResult> GetAll()
     {
         var customers = await _customerRepository.GetAllAsync();
@@ -26,7 +26,7 @@ public class CustomersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = "SalesPolicy")]
+    [Authorize(Roles = "Admin,Sales")]
     public async Task<IActionResult> GetById(int id)
     {
         var customer = await _customerRepository.GetByIdAsync(id);

@@ -1,6 +1,8 @@
 <div>
   <h2>قائمة الشحنات</h2>
 
+  <button (click)="router.navigate(['/shipments/new'])">إنشاء شحنة جديدة</button>
+
   <div *ngIf="loading">جارٍ التحميل...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
@@ -13,6 +15,7 @@
         <th>الحالة</th>
         <th>POL</th>
         <th>POD</th>
+        <th>إجراءات</th>
       </tr>
     </thead>
     <tbody>
@@ -23,6 +26,10 @@
         <td>{{ shipment.status }}</td>
         <td>{{ shipment.portOfLoading }}</td>
         <td>{{ shipment.portOfDischarge }}</td>
+        <td>
+          <button (click)="router.navigate([`/shipments/${shipment.id}/edit`])">تعديل</button>
+          <button (click)="deleteShipment(shipment.id)">حذف</button>
+        </td>
       </tr>
     </tbody>
   </table>

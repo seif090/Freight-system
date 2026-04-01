@@ -1,7 +1,10 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
+using FreightSystem.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Hangfire;
 
 namespace FreightSystem.Api.Controllers;
 
@@ -11,10 +14,12 @@ namespace FreightSystem.Api.Controllers;
 public class ShipmentsController : ControllerBase
 {
     private readonly IShipmentRepository _shipmentRepository;
+    private readonly IHubContext<LiveTrackingHub> _hubContext;
 
-    public ShipmentsController(IShipmentRepository shipmentRepository)
+    public ShipmentsController(IShipmentRepository shipmentRepository, IHubContext<LiveTrackingHub> hubContext)
     {
         _shipmentRepository = shipmentRepository;
+        _hubContext = hubContext;
     }
 
     [HttpGet]
@@ -49,6 +54,18 @@ public class ShipmentsController : ControllerBase
         }
 
         await _shipmentRepository.AddAsync(shipment);
+
+        // Real-time update to SignalR clients
+        await _hubContext.Clients.All.SendAsync("ShipmentCreated", new
+        {
+            shipment.Id,
+            shipment.TrackingNumber,
+            shipment.Status
+        });
+
+        // schedule a notification job
+        BackgroundJob.Enqueue(() => Console.WriteLine($"New shipment created: {shipment.TrackingNumber}"));
+
         return CreatedAtAction(nameof(GetById), new { id = shipment.Id }, shipment);
     }
 
@@ -74,6 +91,18 @@ public class ShipmentsController : ControllerBase
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _shipmentRepository.UpdateAsync(existing);
+
+        // Live tracking notification
+        await _hubContext.Clients.Group($"Shipment_{existing.Id}").SendAsync("ShipmentUpdated", new
+        {
+            existing.Id,
+            existing.Status,
+            existing.ETA,
+            existing.ETD
+        });
+
+        BackgroundJob.Enqueue(() => Console.WriteLine($"Shipment updated: {existing.TrackingNumber} status {existing.Status}"));
+
         return NoContent();
     }
 

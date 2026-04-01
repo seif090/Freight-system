@@ -22,7 +22,7 @@ export interface Shipment {
   providedIn: 'root'
 })
 export class ShipmentService {
-  private readonly apiUrl = 'https://localhost:5001/api/shipments';
+  private readonly apiUrl = 'https://localhost:5001/api/v1.0/shipments';
 
   constructor(private http: HttpClient) { }
 
@@ -36,5 +36,13 @@ export class ShipmentService {
 
   createShipment(shipment: Partial<Shipment>): Observable<Shipment> {
     return this.http.post<Shipment>(this.apiUrl, shipment);
+  }
+
+  updateShipment(id: number, shipment: Partial<Shipment>): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, shipment);
+  }
+
+  deleteShipment(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

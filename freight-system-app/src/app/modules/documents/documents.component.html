@@ -1,0 +1,17 @@
+<div>
+  <h2>رفع مستند للشحنة</h2>
+
+  <label>
+    Shipment ID
+    <input type="number" [(ngModel)]="shipmentId" />
+  </label>
+
+  <label>
+    File
+    <input type="file" (change)="onFileSelected($event)" />
+  </label>
+
+  <button (click)="upload()">رفع</button>
+
+  <div>{{ message }}</div>
+</div>

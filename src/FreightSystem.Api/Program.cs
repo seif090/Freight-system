@@ -1,6 +1,8 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Infrastructure.Persistence;
 using FreightSystem.Infrastructure.Repositories;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,13 @@ builder.Services.AddDbContext<FreightDbContext>(options =>
 
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+builder.Services.AddSignalR();
+builder.Services.AddHangfire(config =>
+{
+    config.UseMemoryStorage();
+});
+builder.Services.AddHangfireServer();
 
 var jwtKey = builder.Configuration.GetValue<string>("JwtSettings:Secret") ?? "default_super_secure_key_please_change";
 var jwtIssuer = builder.Configuration.GetValue<string>("JwtSettings:Issuer") ?? "FreightSystem";
@@ -91,10 +100,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseHangfireDashboard();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<FreightSystem.Api.Hubs.LiveTrackingHub> ("/hubs/tracking");
 
 var summaries = new[]
 {

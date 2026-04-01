@@ -1,16 +1,23 @@
 {
   "version": 2,
-  "dgSpecHash": "udndYBGY0Dg=",
+  "dgSpecHash": "sTeLtOkenig=",
   "success": true,
   "projectFilePath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Api\\FreightSystem.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\seaif\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire\\1.8.23\\hangfire.1.8.23.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire.aspnetcore\\1.8.23\\hangfire.aspnetcore.1.8.23.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire.core\\1.8.23\\hangfire.core.1.8.23.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire.memorystorage\\1.8.1.2\\hangfire.memorystorage.1.8.1.2.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire.netcore\\1.8.23\\hangfire.netcore.1.8.23.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\hangfire.sqlserver\\1.8.23\\hangfire.sqlserver.1.8.23.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.5\\microsoft.aspnetcore.authentication.jwtbearer.10.0.5.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.apiexplorer\\2.3.9\\microsoft.aspnetcore.mvc.apiexplorer.2.3.9.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.versioning\\5.1.0\\microsoft.aspnetcore.mvc.versioning.5.1.0.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.mvc.versioning.apiexplorer\\5.1.0\\microsoft.aspnetcore.mvc.versioning.apiexplorer.5.1.0.nupkg.sha512",
+    "C:\\Users\\seaif\\.nuget\\packages\\microsoft.aspnetcore.signalr\\1.2.9\\microsoft.aspnetcore.signalr.1.2.9.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\8.0.0\\microsoft.bcl.asyncinterfaces.8.0.0.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.bcl.cryptography\\9.0.4\\microsoft.bcl.cryptography.9.0.4.nupkg.sha512",
     "C:\\Users\\seaif\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
@@ -70,6 +77,18 @@
       "warningLevel": 1,
       "filePath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Api\\FreightSystem.Api.csproj",
       "libraryId": "Microsoft.AspNetCore.Mvc.ApiExplorer",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1510",
+      "level": "Warning",
+      "message": "PackageReference Microsoft.AspNetCore.SignalR will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.",
+      "projectPath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Api\\FreightSystem.Api.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\seaif\\Desktop\\Freight system\\src\\FreightSystem.Api\\FreightSystem.Api.csproj",
+      "libraryId": "Microsoft.AspNetCore.SignalR",
       "targetGraphs": [
         "net10.0"
       ]

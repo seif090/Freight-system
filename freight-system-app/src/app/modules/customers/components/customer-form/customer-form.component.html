@@ -1,0 +1,39 @@
+<div>
+  <h2>{{ isEdit ? 'تعديل العميل' : 'إنشاء عميل' }}</h2>
+
+  <form (ngSubmit)="save()">
+    <label>
+      الاسم
+      <input [(ngModel)]="customer.name" name="name" required />
+    </label>
+
+    <label>
+      البريد
+      <input [(ngModel)]="customer.email" name="email" required />
+    </label>
+
+    <label>
+      الهاتف
+      <input [(ngModel)]="customer.phone" name="phone" />
+    </label>
+
+    <label>
+      العنوان
+      <input [(ngModel)]="customer.address" name="address" />
+    </label>
+
+    <label>
+      الحد الائتماني
+      <input type="number" [(ngModel)]="customer.creditLimit" name="creditLimit" />
+    </label>
+
+    <label>
+      الرصيد
+      <input type="number" [(ngModel)]="customer.balance" name="balance" />
+    </label>
+
+    <button type="submit">حفظ</button>
+  </form>
+
+  <div *ngIf="error" style="color: red">{{ error }}</div>
+</div>

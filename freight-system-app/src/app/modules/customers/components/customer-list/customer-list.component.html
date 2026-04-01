@@ -1,6 +1,8 @@
 <div>
   <h2>قائمة العملاء</h2>
 
+  <button (click)="router.navigate(['/customers/new'])">إنشاء عميل</button>
+
   <div *ngIf="loading">جارٍ التحميل...</div>
   <div *ngIf="error" class="error">{{ error }}</div>
 
@@ -13,6 +15,7 @@
         <th>العنوان</th>
         <th>الحد الائتماني</th>
         <th>الرصيد</th>
+        <th>إجراءات</th>
       </tr>
     </thead>
     <tbody>
@@ -23,6 +26,10 @@
         <td>{{ customer.address }}</td>
         <td>{{ customer.creditLimit }}</td>
         <td>{{ customer.balance }}</td>
+        <td>
+          <button (click)="router.navigate([`/customers/${customer.id}/edit`])">تعديل</button>
+          <button (click)="deleteCustomer(customer.id)">حذف</button>
+        </td>
       </tr>
     </tbody>
   </table>

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Customer, CustomerService } from '../../services/customer.service';
 
 @Component({
@@ -14,7 +15,7 @@ export class CustomerListComponent implements OnInit {
   loading = false;
   error = '';
 
-  constructor(private customerService: CustomerService) { }
+  constructor(private customerService: CustomerService, public router: Router) { }
 
   ngOnInit(): void {
     this.fetchCustomers();
@@ -32,6 +33,13 @@ export class CustomerListComponent implements OnInit {
         console.error(err);
         this.loading = false;
       }
+    });
+  }
+
+  deleteCustomer(id: number): void {
+    this.customerService.deleteCustomer(id).subscribe({
+      next: () => this.fetchCustomers(),
+      error: () => this.error = 'فشل حذف العميل.'
     });
   }
 }
