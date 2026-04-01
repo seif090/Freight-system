@@ -28,11 +28,11 @@ public class ReportsController : ControllerBase
         var customers = (await _customerRepository.GetAllAsync()).ToList();
 
         var shipmentsPerStatus = shipments
-            .GroupBy(x => x.Status ?? "Unknown")
+            .GroupBy(x => x.Status.ToString())
             .ToDictionary(g => g.Key, g => g.Count());
 
         var shipmentsPerMode = shipments
-            .GroupBy(x => x.Mode ?? "Unknown")
+            .GroupBy(x => x.Mode.ToString())
             .ToDictionary(g => g.Key, g => g.Count());
 
         var monthlyShipmentCount = shipments
