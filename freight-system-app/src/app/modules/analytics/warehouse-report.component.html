@@ -1,0 +1,22 @@
+<section>
+  <h2>Warehouse Reporting</h2>
+  <button (click)="createSnapshot()">Create BI warehouse snapshot</button>
+  <div *ngIf="message" class="info">{{ message }}</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <table>
+    <thead><tr><th>ID</th><th>Tracking</th><th>Route</th><th>Status</th><th>Origin</th><th>Destination</th><th>ETA</th><th>Delay</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let f of facts">
+        <td>{{ f.id }}</td>
+        <td>{{ f.trackingNumber }}</td>
+        <td>{{ f.routeKey }}</td>
+        <td>{{ f.status }}</td>
+        <td>{{ f.origin }}</td>
+        <td>{{ f.destination }}</td>
+        <td>{{ f.eta | date:'short' }}</td>
+        <td>{{ f.isDelayAnomaly ? 'Yes' : 'No' }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>

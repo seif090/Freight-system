@@ -1,0 +1,20 @@
+<section>
+  <h2>ETA Risk Dashboard</h2>
+  <div style="max-width: 540px;">
+    <label>Shipment ID:<br><input type="number" [(ngModel)]="shipmentId"></label><br>
+    <h3>Create Route Segment</h3>
+    <label>Order:<br><input type="number" [(ngModel)]="segment.segmentOrder"></label><br>
+    <label>Start Lat/Lng:<br><input type="number" [(ngModel)]="segment.startLatitude" placeholder="lat"> <input type="number" [(ngModel)]="segment.startLongitude" placeholder="lon"></label><br>
+    <label>End Lat/Lng:<br><input type="number" [(ngModel)]="segment.endLatitude" placeholder="lat"> <input type="number" [(ngModel)]="segment.endLongitude" placeholder="lon"></label><br>
+    <label>Distance (km):<br><input type="number" [(ngModel)]="segment.distanceKm"></label><br>
+    <button (click)="createSegment()">Add Segment + ETA</button>
+  </div>
+
+  <button (click)="checkAnomaly()">Run delay anomaly check</button>
+  <button (click)="streamHistory()">Stream history to ML</button>
+
+  <div *ngIf="addedSegment"><h4>Segment created</h4><pre>{{ addedSegment | json }}</pre></div>
+  <div *ngIf="anomalyResult"><h4>Anomaly response</h4><pre>{{ anomalyResult | json }}</pre></div>
+  <div *ngIf="streamResult"><h4>Stream result</h4><pre>{{ streamResult | json }}</pre></div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+</section>

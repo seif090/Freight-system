@@ -1,0 +1,12 @@
+<section>
+  <h2>ML Stream + Anomaly Summary</h2>
+  <label>Shipment ID:<br><input type="number" [(ngModel)]="shipmentId"></label><br>
+  <button (click)="runAnomaly()">Run anomaly model</button>
+  <button (click)="runStream()">Stream route history</button>
+  <button (click)="captureWarehouse()">Snapshot warehouse facts</button>
+
+  <div *ngIf="lastAnomaly"><h4>Anomaly</h4><pre>{{ lastAnomaly | json }}</pre></div>
+  <div *ngIf="lastStream"><h4>Stream</h4><pre>{{ lastStream | json }}</pre></div>
+  <div *ngIf="lastFill"><h4>Warehouse Snapshot</h4><pre>{{ lastFill | json }}</pre></div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+</section>

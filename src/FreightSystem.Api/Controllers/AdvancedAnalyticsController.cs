@@ -35,6 +35,14 @@ namespace FreightSystem.Api.Controllers
             return CreatedAtAction(nameof(GetGeofence), new { id = geofence.Id }, geofence);
         }
 
+        [HttpGet("geofences")]
+        [Authorize(Policy = "SalesPolicy")]
+        public async Task<IActionResult> GetGeofences()
+        {
+            var geofences = await _dbContext.Geofences.OrderByDescending(g => g.CreatedAt).ToListAsync();
+            return Ok(geofences);
+        }
+
         [HttpGet("geofences/{id:int}")]
         [Authorize(Policy = "SalesPolicy")]
         public async Task<IActionResult> GetGeofence(int id)

@@ -56,6 +56,26 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/geofences',
+    loadComponent: () => import('./modules/analytics/geofence-management.component').then((c) => c.GeofenceManagementComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/eta-risk',
+    loadComponent: () => import('./modules/analytics/eta-risk-dashboard.component').then((c) => c.EtaRiskDashboardComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/warehouse',
+    loadComponent: () => import('./modules/analytics/warehouse-report.component').then((c) => c.WarehouseReportComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
+    path: 'analytics/ml',
+    loadComponent: () => import('./modules/analytics/ml-summary.component').then((c) => c.MlSummaryComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
