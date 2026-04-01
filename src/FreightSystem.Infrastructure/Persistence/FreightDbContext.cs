@@ -203,9 +203,10 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.HasMany(x => x.Shipments).WithOne(x => x.Customer).HasForeignKey(x => x.CustomerId);
                 entity.HasMany(x => x.Invoices).WithOne(x => x.Customer).HasForeignKey(x => x.CustomerId);
 
+                var seedDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 entity.HasData(
-                    new Customer { Id = 1, Name = "Samah Logistics", Email = "samah@logistics.com", Phone = "+201000000001", Address = "Cairo", CreditLimit = 50000, Balance = 0, CreatedAt = DateTime.UtcNow },
-                    new Customer { Id = 2, Name = "Nile Importers", Email = "contact@nile-import.com", Phone = "+201000000002", Address = "Alexandria", CreditLimit = 100000, Balance = 10000, CreatedAt = DateTime.UtcNow }
+                    new Customer { Id = 1, Name = "Samah Logistics", Email = "samah@logistics.com", Phone = "+201000000001", Address = "Cairo", CreditLimit = 50000, Balance = 0, CreatedAt = seedDate },
+                    new Customer { Id = 2, Name = "Nile Importers", Email = "contact@nile-import.com", Phone = "+201000000002", Address = "Alexandria", CreditLimit = 100000, Balance = 10000, CreatedAt = seedDate }
                 );
             });
 
