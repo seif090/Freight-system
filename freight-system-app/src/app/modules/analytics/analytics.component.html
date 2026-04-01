@@ -1,10 +1,49 @@
 <div>
   <h2>Advanced Analytics</h2>
   <div *ngIf="error" class="error">{{ error }}</div>
+
   <div *ngIf="summary">
     <p>Total Shipments: {{ summary.total }}</p>
     <p>Overdue Shipments: {{ summary.overdue }}</p>
     <p>High/Critical Priority: {{ summary.highPriority }}</p>
     <p>Predicted Delay: {{ summary.predictedDelayPercent }}%</p>
   </div>
+
+  <section class="dashboard-panel" *ngIf="llmSpendTrend">
+    <h3>LLM Spend Trend</h3>
+    <p>Total Requests: {{ llmSpendTrend.totalEntries }}</p>
+    <p>Total Tokens: {{ llmSpendTrend.totalToken }}</p>
+    <p>Total Cost: ${{ llmSpendTrend.totalCost | number:'1.6-6' }}</p>
+    <ul>
+      <li *ngFor="let day of llmSpendTrend.groupByDay">
+        {{ day.date | date }}: {{ day.tokenUsage }} tokens, ${{ day.costUsd | number:'1.6-6' }}, requests {{ day.count }}
+      </li>
+    </ul>
+  </section>
+
+  <section class="dashboard-panel" *ngIf="delayRisk">
+    <h3>Delay Risk Forecast</h3>
+    <p>As of: {{ delayRisk.asOf | date:'short' }}</p>
+    <p>High Risk Count: {{ delayRisk.highRisk?.length }}</p>
+    <p>Medium Risk Count: {{ delayRisk.mediumRisk?.length }}</p>
+    <p>Low Risk Count: {{ delayRisk.lowRisk?.length }}</p>
+  </section>
+
+  <section class="dashboard-panel" *ngIf="delayRegression">
+    <h3>Delay Regression Model</h3>
+    <p>Sample Count: {{ delayRegression.sampleSize }}</p>
+    <p>Slope: {{ delayRegression.slope | number:'1.4-4' }}</p>
+    <p>Intercept: {{ delayRegression.intercept | number:'1.2-2' }}</p>
+    <p>R²: {{ delayRegression.rSquared | number:'1.4-4' }}</p>
+    <p>Forecast Delay (minutes): {{ delayRegression.forecastDelayMinutes | number:'1.2-2' }}</p>
+
+    <div *ngIf="delayRegression.samples?.length">
+      <h4>Recent Samples</h4>
+      <ul>
+        <li *ngFor="let sample of delayRegression.samples | slice:0:8">
+          Duration {{ sample.hours | number:'1.1-1' }}h -> Delay {{ sample.delay | number:'1.1-1' }}m
+        </li>
+      </ul>
+    </div>
+  </section>
 </div>

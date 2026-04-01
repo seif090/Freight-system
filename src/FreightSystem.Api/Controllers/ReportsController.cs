@@ -18,12 +18,14 @@ public class ReportsController : ControllerBase
     private readonly IShipmentRepository _shipmentRepository;
     private readonly ICustomerRepository _customerRepository;
     private readonly FreightDbContext _dbContext;
+    private readonly IMLService _mlService;
 
-    public ReportsController(IShipmentRepository shipmentRepository, ICustomerRepository customerRepository, FreightDbContext dbContext)
+    public ReportsController(IShipmentRepository shipmentRepository, ICustomerRepository customerRepository, FreightDbContext dbContext, IMLService mlService)
     {
         _shipmentRepository = shipmentRepository;
         _customerRepository = customerRepository;
         _dbContext = dbContext;
+        _mlService = mlService;
     }
 
     [HttpGet("dashboard")]
@@ -157,6 +159,30 @@ public class ReportsController : ControllerBase
             HighRisk = riskScores.Where(x => x.RiskScore >= 70),
             MediumRisk = riskScores.Where(x => x.RiskScore >= 40 && x.RiskScore < 70),
             LowRisk = riskScores.Where(x => x.RiskScore < 40)
+        });
+    }
+
+    [HttpGet("delay-regression")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get linear regression-based delay forecast.", "الحصول على توقع التأخير باستخدام الانحدار الخطي.")]
+    public async Task<IActionResult> GetDelayRegression([FromQuery] int sampleSize = 100)
+    {
+        var shipments = await _dbContext.Shipments
+            .Where(s => s.Status == Core.Entities.ShipmentStatus.Delivered && s.ETA.HasValue && s.ETD.HasValue && s.UpdatedAt.HasValue)
+            .OrderByDescending(s => s.UpdatedAt)
+            .Take(sampleSize)
+            .ToListAsync();
+
+        var regression = await _mlService.PredictDelayRegressionAsync(shipments);
+
+        return Ok(new
+        {
+            regression.Slope,
+            regression.Intercept,
+            regression.RSquared,
+            regression.ForecastDelayMinutes,
+            regression.SampleSize,
+            Samples = regression.Samples
         });
     }
 

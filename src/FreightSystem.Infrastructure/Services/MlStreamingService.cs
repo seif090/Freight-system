@@ -76,5 +76,59 @@ namespace FreightSystem.Infrastructure.Services
 
             return data;
         }
+
+        public Task<DelayRegressionResult> PredictDelayRegressionAsync(IEnumerable<Shipment> shipments)
+        {
+            var sample = shipments
+                .Where(s => s.ETD.HasValue && s.ETA.HasValue && s.Status == ShipmentStatus.Delivered && s.UpdatedAt.HasValue)
+                .Select(s => new
+                {
+                    DurationHours = (s.ETA.Value - s.ETD.Value).TotalHours,
+                    DelayMinutes = (s.UpdatedAt.Value - s.ETA.Value).TotalMinutes
+                })
+                .Where(x => !double.IsNaN(x.DurationHours) && !double.IsInfinity(x.DurationHours))
+                .ToList();
+
+            if (sample.Count < 2)
+            {
+                return Task.FromResult(new DelayRegressionResult
+                {
+                    Slope = 0,
+                    Intercept = 0,
+                    RSquared = 0,
+                    ForecastDelayMinutes = 0,
+                    SampleSize = sample.Count,
+                    Samples = sample.Select(x => new { Hours = x.DurationHours, Delay = x.DelayMinutes })
+                });
+            }
+
+            var xVals = sample.Select(x => x.DurationHours).ToArray();
+            var yVals = sample.Select(x => x.DelayMinutes).ToArray();
+
+            var xMean = xVals.Average();
+            var yMean = yVals.Average();
+            var ssX = xVals.Sum(x => Math.Pow(x - xMean, 2));
+            var ssXY = xVals.Zip(yVals, (x, y) => (x - xMean) * (y - yMean)).Sum();
+            var slope = ssX != 0 ? ssXY / ssX : 0;
+            var intercept = yMean - slope * xMean;
+
+            var ssTot = yVals.Sum(y => Math.Pow(y - yMean, 2));
+            var ssRes = xVals.Zip(yVals, (x, y) => Math.Pow(y - (slope * x + intercept), 2)).Sum();
+            var rSquared = ssTot == 0 ? 0 : 1 - ssRes / ssTot;
+
+            // forecast for average duration
+            var avgDuration = xMean;
+            var forecast = slope * avgDuration + intercept;
+
+            return Task.FromResult(new DelayRegressionResult
+            {
+                Slope = slope,
+                Intercept = intercept,
+                RSquared = rSquared,
+                ForecastDelayMinutes = forecast,
+                SampleSize = sample.Count,
+                Samples = sample.Select(x => new { Hours = x.DurationHours, Delay = x.DelayMinutes })
+            });
+        }
     }
 }

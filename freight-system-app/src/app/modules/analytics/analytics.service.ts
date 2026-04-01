@@ -13,4 +13,19 @@ export class AnalyticsService {
   getSummary(): Observable<any> {
     return this.http.get(`${this.apiUrl}/summary`);
   }
+
+  getLlmSpendTrend(from?: string, to?: string): Observable<any> {
+    let params = '';
+    if (from) params += `from=${encodeURIComponent(from)}&`;
+    if (to) params += `to=${encodeURIComponent(to)}&`;
+    return this.http.get(`${this.apiUrl}/llm-spend-trend?${params}`);
+  }
+
+  getDelayRiskForecast(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delay-risk-forecast`);
+  }
+
+  getDelayRegression(sampleSize = 100): Observable<any> {
+    return this.http.get(`${this.apiUrl}/delay-regression?sampleSize=${sampleSize}`);
+  }
 }
