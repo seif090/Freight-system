@@ -166,6 +166,8 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.Property(x => x.Status).HasMaxLength(50);
                 entity.Property(x => x.TenantId).HasMaxLength(100);
                 entity.Property(x => x.CreatedAt).IsRequired();
+                entity.Property(x => x.RecordDate).IsRequired();
+                entity.HasIndex(x => new { x.ShipmentId, x.RecordDate }).IsUnique();
                 entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId).OnDelete(DeleteBehavior.Cascade);
             });
 

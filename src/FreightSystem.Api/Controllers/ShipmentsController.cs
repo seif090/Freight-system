@@ -219,12 +219,12 @@ public class ShipmentsController : ControllerBase
             return;
 
         // Avoid duplicates by checking recent entry
-        var recent = await _dbContext.DelayHistories
-            .Where(x => x.ShipmentId == shipment.Id)
-            .OrderByDescending(x => x.CreatedAt)
+        var today = DateTime.UtcNow.Date;
+        var existingSameDay = await _dbContext.DelayHistories
+            .Where(x => x.ShipmentId == shipment.Id && x.RecordDate == today)
             .FirstOrDefaultAsync();
 
-        if (recent != null && recent.ActualArrival == shipment.UpdatedAt.Value)
+        if (existingSameDay != null)
             return;
 
         var delayMinutes = (shipment.UpdatedAt.Value - shipment.ETA.Value).TotalMinutes;
@@ -241,7 +241,8 @@ public class ShipmentsController : ControllerBase
             DelayMinutes = delayMinutes,
             Status = shipment.Status.ToString(),
             TenantId = shipment.TenantId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            RecordDate = DateTime.UtcNow.Date
         };
 
         _dbContext.DelayHistories.Add(record);

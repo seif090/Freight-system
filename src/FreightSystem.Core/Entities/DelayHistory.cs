@@ -14,5 +14,6 @@ namespace FreightSystem.Core.Entities
         public string Status { get; set; } = string.Empty;
         public string TenantId { get; set; } = "default";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime RecordDate { get; set; } = DateTime.UtcNow.Date;
     }
 }

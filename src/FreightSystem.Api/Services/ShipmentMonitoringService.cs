@@ -63,10 +63,19 @@ namespace FreightSystem.Api.Services
             var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
             var now = DateTime.UtcNow;
 
-            // cleanup old anomaly history (90 days retention)
-            var retention = now.AddDays(-90);
-            var oldClusters = _dbContext.DelayAnomalyClusterHistories.Where(x => x.CreatedAt < retention);
+            // retention from config (default 90 days)
+            var timeWindowDays = _configuration.GetValue<int>("Monitoring:DelayHistoryRetentionDays", 90);
+            var clusterWindowDays = _configuration.GetValue<int>("Monitoring:ClusterHistoryRetentionDays", 90);
+
+            var delayRetention = now.AddDays(-timeWindowDays);
+            var clusterRetention = now.AddDays(-clusterWindowDays);
+
+            var oldDelay = _dbContext.DelayHistories.Where(x => x.CreatedAt < delayRetention);
+            _dbContext.DelayHistories.RemoveRange(oldDelay);
+
+            var oldClusters = _dbContext.DelayAnomalyClusterHistories.Where(x => x.CreatedAt < clusterRetention);
             _dbContext.DelayAnomalyClusterHistories.RemoveRange(oldClusters);
+
             await _dbContext.SaveChangesAsync();
 
             var missed = shipments
@@ -76,7 +85,7 @@ namespace FreightSystem.Api.Services
             foreach (var shipment in missed)
             {
                 var existing = await _dbContext.DelayHistories
-                    .Where(x => x.ShipmentId == shipment.Id && x.CreatedAt > now.AddDays(-7))
+                    .Where(x => x.ShipmentId == shipment.Id && x.RecordDate == now.Date)
                     .FirstOrDefaultAsync();
 
                 if (existing != null) continue;
