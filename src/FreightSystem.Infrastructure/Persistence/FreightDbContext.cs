@@ -27,6 +27,8 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<Vehicle> Vehicles => Set<Vehicle>();
         public DbSet<MaintenanceEvent> MaintenanceEvents => Set<MaintenanceEvent>();
         public DbSet<DispatchAction> DispatchActions => Set<DispatchAction>();
+        public DbSet<TelematicsData> Telematics => Set<TelematicsData>();
+        public DbSet<BlockchainAudit> BlockchainAudits => Set<BlockchainAudit>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -123,6 +125,21 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.Property(x => x.RouteGeoJson).HasMaxLength(4096);
                 entity.Property(x => x.Priority).HasMaxLength(50);
                 entity.Property(x => x.Dispatched).HasDefaultValue(false);
+            });
+
+            modelBuilder.Entity<TelematicsData>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Provider).HasMaxLength(100);
+                entity.Property(x => x.TenantId).HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<BlockchainAudit>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.EventType).HasMaxLength(100);
+                entity.Property(x => x.PayloadHash).HasMaxLength(256);
+                entity.Property(x => x.PreviousHash).HasMaxLength(256);
             });
 
             modelBuilder.Entity<Customer>(entity =>

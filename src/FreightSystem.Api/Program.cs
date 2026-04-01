@@ -38,6 +38,9 @@ builder.Services.AddSingleton<IEventBus, KafkaEventBus>();
 builder.Services.AddScoped<IGeoService, GeoService>();
 builder.Services.AddScoped<IMLService, MlStreamingService>();
 builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
+builder.Services.AddScoped<ITelematicsService, TelematicsService>();
+builder.Services.AddScoped<ITrafficService, TrafficService>();
+builder.Services.AddScoped<IAiTrainingService, AiTrainingService>();
 builder.Services.AddHttpClient<IMLService, MlStreamingService>();
 
 builder.Services.AddSignalR();
