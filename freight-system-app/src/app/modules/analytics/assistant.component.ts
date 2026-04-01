@@ -12,6 +12,10 @@ import { AdvancedAnalyticsService } from './advanced-analytics.service';
 export class AssistantComponent {
   userInput = '';
   conversation: any[] = [];
+  totalTokenUsage = 0;
+  lastTokenUsage = 0;
+  totalCost = 0;
+  lastProvider = '';
 
   constructor(private analyticsService: AdvancedAnalyticsService) {}
 
@@ -37,7 +41,19 @@ export class AssistantComponent {
     this.conversation.unshift({ role: 'user', text: this.userInput });
 
     this.analyticsService.executeAssistant(request).subscribe((res: any) => {
-      this.conversation.unshift({ role: 'assistant', text: res.results });
+      this.lastTokenUsage = res.tokenUsage || 0;
+      this.totalTokenUsage += this.lastTokenUsage;
+      this.totalCost += res.estimatedCostUsd || 0;
+      this.lastProvider = res.provider || '';
+
+      this.conversation.unshift({
+        role: 'assistant',
+        text: res.results,
+        tokenUsage: this.lastTokenUsage,
+        estimatedCost: res.estimatedCostUsd,
+        provider: this.lastProvider
+      });
+
       this.userInput = '';
     });
   }

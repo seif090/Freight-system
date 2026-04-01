@@ -9,11 +9,13 @@ namespace FreightSystem.Application.Interfaces
 
     public class AssistantResponse
     {
+        public string Provider { get; set; } = string.Empty;
         public string Command { get; set; } = string.Empty;
         public string Results { get; set; } = string.Empty;
         public string NextAction { get; set; } = string.Empty;
         public bool Success { get; set; }
         public int TokenUsage { get; set; }
+        public double EstimatedCostUsd { get; set; }
     }
 
     public interface IAssistantService

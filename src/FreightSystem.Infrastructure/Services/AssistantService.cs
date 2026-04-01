@@ -1,10 +1,9 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Settings;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace FreightSystem.Infrastructure.Services
 {
@@ -13,11 +12,15 @@ namespace FreightSystem.Infrastructure.Services
         private readonly List<string> _history = new();
         private readonly HttpClient _httpClient;
         private readonly LlmSettings _llmSettings;
+        private readonly IEventBus _eventBus;
+        private readonly ILogger<AssistantService> _logger;
 
-        public AssistantService(HttpClient httpClient, IOptions<LlmSettings> llmOptions)
+        public AssistantService(HttpClient httpClient, IOptions<LlmSettings> llmOptions, IEventBus eventBus, ILogger<AssistantService> logger)
         {
             _httpClient = httpClient;
             _llmSettings = llmOptions.Value;
+            _eventBus = eventBus;
+            _logger = logger;
         }
 
         public async Task<AssistantResponse> ExecuteAsync(AssistantRequest request)
@@ -34,7 +37,16 @@ namespace FreightSystem.Infrastructure.Services
             var prompt = $"You are a freight operations AI assistant. Context: {contextText}. User: {input}";
             var llmResult = await QueryLlmAsync(prompt);
 
-            var response = new AssistantResponse { Success = true, Results = llmResult.text, NextAction = llmResult.nextAction, Command = llmResult.command, TokenUsage = llmResult.tokenUsage };
+            var response = new AssistantResponse
+            {
+                Success = llmResult.Success,
+                Results = llmResult.Text,
+                Command = llmResult.Command,
+                NextAction = llmResult.NextAction,
+                TokenUsage = llmResult.TokenUsage,
+                Provider = llmResult.Provider,
+                EstimatedCostUsd = llmResult.EstimatedCostUsd
+            };
 
             // rule engine fallback when command cannot be extracted
             if (string.IsNullOrEmpty(response.Command))
@@ -52,53 +64,135 @@ namespace FreightSystem.Infrastructure.Services
                 if (_history.Count > 20) _history.RemoveAt(0);
             }
 
+            // Analytics event for token usage + cost
+            try
+            {
+                await _eventBus.PublishAsync("llm-assistant-usage", new
+                {
+                    request.UserId,
+                    request.Input,
+                    response.Provider,
+                    response.Command,
+                    response.TokenUsage,
+                    response.EstimatedCostUsd,
+                    response.Success,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to publish llm-assistant-usage event.");
+            }
+
             return response;
         }
 
-        private async Task<(string text, string command, string nextAction, int tokenUsage)> QueryLlmAsync(string prompt)
+        private record LlmResult(bool Success, string Text, string Command, string NextAction, int TokenUsage, double EstimatedCostUsd, string Provider, string ErrorMessage);
+
+        private async Task<LlmResult> QueryLlmAsync(string prompt)
         {
-            if (_llmSettings.Provider.ToLowerInvariant() == "anthropic" && !string.IsNullOrWhiteSpace(_llmSettings.ClaudeApiKey))
+            var requestedProvider = string.IsNullOrWhiteSpace(_llmSettings.Provider) ? "openai" : _llmSettings.Provider.Trim().ToLowerInvariant();
+            LlmResult result;
+
+            if (requestedProvider == "anthropic" || requestedProvider == "claude")
             {
-                var body = new
+                result = await InvokeClaudeAsync(prompt);
+                if (result.Success) return result;
+
+                _logger.LogWarning("Primary provider Claude/Anthropic failed. Attempting OpenAI fallback: {Error}", result.ErrorMessage);
+
+                result = await InvokeOpenAiAsync(prompt);
+                if (result.Success) return result;
+            }
+            else // openai preferred (default) or anything else
+            {
+                result = await InvokeOpenAiAsync(prompt);
+                if (result.Success) return result;
+
+                _logger.LogWarning("Primary provider OpenAI failed. Attempting Claude fallback: {Error}", result.ErrorMessage);
+
+                result = await InvokeClaudeAsync(prompt);
+                if (result.Success) return result;
+            }
+
+            return new LlmResult(false, "LLM keys not configured or all providers failed.", "chat", "Provide command with reroute/gantt/crew dispatch.", 0, 0.0, requestedProvider, result.ErrorMessage);
+        }
+
+        private async Task<LlmResult> InvokeOpenAiAsync(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(_llmSettings.OpenAiApiKey))
+            {
+                return new LlmResult(false, "OpenAI API key is not configured.", string.Empty, string.Empty, 0, 0.0, "openai", "Missing OpenAI key");
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _llmSettings.OpenAiApiKey);
+
+            var body = new
+            {
+                model = _llmSettings.OpenAiModel,
+                messages = new[]
                 {
-                    model = _llmSettings.ClaudeModel,
-                    prompt = prompt,
-                    max_tokens_to_sample = _llmSettings.MaxTokens,
-                    stop_sequences = new[] {"\nHuman:"}
-                };
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _llmSettings.ClaudeApiKey);
+                    new { role = "system", content = "You are a freight operations assistant. Optimize and route commands." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = _llmSettings.MaxTokens,
+                temperature = 0.2
+            };
+
+            try
+            {
+                var res = await _httpClient.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
+                res.EnsureSuccessStatusCode();
+
+                var obj = await res.Content.ReadFromJsonAsync<dynamic>();
+                var text = (string)obj?.choices?[0]?.message?.content ?? string.Empty;
+                int tokens = obj?.usage?.total_tokens ?? (text.Length / 4);
+                var command = ExtractCommand(text);
+                var nextAction = ExtractNextAction(text);
+                var cost = Math.Round(tokens * 0.000002, 6, MidpointRounding.AwayFromZero);
+
+                return new LlmResult(true, text, command, nextAction, tokens, cost, "openai", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return new LlmResult(false, string.Empty, string.Empty, string.Empty, 0, 0.0, "openai", ex.Message);
+            }
+        }
+
+        private async Task<LlmResult> InvokeClaudeAsync(string prompt)
+        {
+            if (string.IsNullOrWhiteSpace(_llmSettings.ClaudeApiKey))
+            {
+                return new LlmResult(false, "Claude API key is not configured.", string.Empty, string.Empty, 0, 0.0, "claude", "Missing Claude key");
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _llmSettings.ClaudeApiKey);
+
+            var body = new
+            {
+                model = _llmSettings.ClaudeModel,
+                prompt = prompt,
+                max_tokens_to_sample = _llmSettings.MaxTokens,
+                stop_sequences = new[] { "\nHuman:" }
+            };
+
+            try
+            {
                 var res = await _httpClient.PostAsJsonAsync("https://api.anthropic.com/v1/complete", body);
                 res.EnsureSuccessStatusCode();
                 var obj = await res.Content.ReadFromJsonAsync<dynamic>();
-                var text = (string)obj?.completion ?? "";
+                var text = (string)obj?.completion ?? string.Empty;
+                int tokens = text.Length / 4;
                 var command = ExtractCommand(text);
                 var nextAction = ExtractNextAction(text);
-                return (text, command, nextAction, text.Length / 4);
-            }
-            else if (!string.IsNullOrWhiteSpace(_llmSettings.OpenAiApiKey))
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _llmSettings.OpenAiApiKey);
-                var body = new
-                {
-                    model = _llmSettings.OpenAiModel,
-                    messages = new[] {
-                        new { role = "system", content = "You are a freight operations assistant. Optimize and route commands." },
-                        new { role = "user", content = prompt }
-                    },
-                    max_tokens = _llmSettings.MaxTokens,
-                    temperature = 0.2
-                };
-                var res = await _httpClient.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", body);
-                res.EnsureSuccessStatusCode();
-                var obj = await res.Content.ReadFromJsonAsync<dynamic>();
-                var text = (string)obj?.choices[0]?.message?.content ?? "";
-                int tokenUsage = obj?.usage?.total_tokens ?? (text.Length / 4);
-                var command = ExtractCommand(text);
-                var nextAction = ExtractNextAction(text);
-                return (text, command, nextAction, tokenUsage);
-            }
+                var cost = Math.Round(tokens * 0.0000018, 6, MidpointRounding.AwayFromZero);
 
-            return ("LLM keys not configured. Skipping.", "chat", "Provide command with reroute/gantt/crew dispatch.", 0);
+                return new LlmResult(true, text, command, nextAction, tokens, cost, "claude", string.Empty);
+            }
+            catch (Exception ex)
+            {
+                return new LlmResult(false, string.Empty, string.Empty, string.Empty, 0, 0.0, "claude", ex.Message);
+            }
         }
 
         private static string ExtractCommand(string text)
@@ -115,12 +209,13 @@ namespace FreightSystem.Infrastructure.Services
             if (text.ToLowerInvariant().Contains("reroute")) return "/advancedoperations/shipments/{id}/optimize-route";
             if (text.ToLowerInvariant().Contains("gantt")) return "/analytics/operations-cockpit";
             if (text.ToLowerInvariant().Contains("crew")) return "/advancedoperations/dispatch-actions";
-            return "";
+            return string.Empty;
         }
 
         public Task<AssistantResponse> ProcessWebhookCommandAsync(string webhookType, object payload)
         {
             var response = new AssistantResponse { Success = true };
+            response.Provider = "webhook";
             response.Command = webhookType;
             response.Results = "Received webhook command: " + webhookType;
 

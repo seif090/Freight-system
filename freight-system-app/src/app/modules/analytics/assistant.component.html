@@ -6,9 +6,16 @@
     <button (click)="send()">Send</button>
   </div>
 
+  <div style="margin: 12px 0; font-size: 0.95rem;">
+    <div><strong>LLM provider:</strong> {{ lastProvider || 'n/a' }}</div>
+    <div><strong>Total token usage:</strong> {{ totalTokenUsage }}</div>
+    <div><strong>Last token usage:</strong> {{ lastTokenUsage }}</div>
+    <div><strong>Total estimated cost:</strong> ${{ totalCost.toFixed(6) }}</div>
+  </div>
+
   <div class="assistant-conversation">
     <div *ngFor="let msg of conversation">
-      <strong>{{ msg.role }}:</strong> {{ msg.text }}
+      <strong>{{ msg.role }}:</strong> {{ msg.text }} <span *ngIf="msg.tokenUsage">(tokens: {{ msg.tokenUsage }}, cost: ${{ msg.estimatedCost?.toFixed(6) }}, provider: {{ msg.provider }})</span>
     </div>
   </div>
 </section>
