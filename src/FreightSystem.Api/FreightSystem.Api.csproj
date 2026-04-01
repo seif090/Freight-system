@@ -10,4 +10,10 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FreightSystem.Core\FreightSystem.Core.csproj" />
+    <ProjectReference Include="..\FreightSystem.Application\FreightSystem.Application.csproj" />
+    <ProjectReference Include="..\FreightSystem.Infrastructure\FreightSystem.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
