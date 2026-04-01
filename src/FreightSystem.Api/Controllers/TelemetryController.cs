@@ -79,5 +79,21 @@ namespace FreightSystem.Api.Controllers
                 await Task.Delay(2000);
             }
         }
+
+        [HttpPost("deviation-check")]
+        [Authorize(Policy = "OperationPolicy")]
+        public async Task<IActionResult> DeviationCheck([FromServices] IDeviationService deviationService, [FromBody] RouteDeviationRequest request)
+        {
+            var alert = await deviationService.EvaluateRouteDeviationAsync(request.ShipmentId, request.CurrentLatitude, request.CurrentLongitude, request.PlannedSegments);
+            return Ok(alert);
+        }
+    }
+
+    public class RouteDeviationRequest
+    {
+        public int ShipmentId { get; set; }
+        public double CurrentLatitude { get; set; }
+        public double CurrentLongitude { get; set; }
+        public IEnumerable<Core.Entities.RouteSegment> PlannedSegments { get; set; } = Array.Empty<Core.Entities.RouteSegment>();
     }
 }

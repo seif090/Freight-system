@@ -1,0 +1,24 @@
+<section>
+  <h2>Route Deviation & Digital Twin Control</h2>
+
+  <div>
+    <label>Shipment ID: <input type="number" [(ngModel)]="shipmentId"></label>
+    <label>Current Lat: <input type="number" [(ngModel)]="currentLat" step="0.0001"></label>
+    <label>Current Lon: <input type="number" [(ngModel)]="currentLon" step="0.0001"></label>
+  </div>
+
+  <div>
+    <label>Planned segments JSON:</label><br>
+    <textarea [(ngModel)]="plannedSegments" rows="6" cols="80"></textarea>
+  </div>
+
+  <button (click)="checkDeviation()">Check Deviation</button>
+
+  <div *ngIf="deviationResult">
+    <h3>Deviation Result</h3>
+    <pre>{{ deviationResult | json }}</pre>
+    <p *ngIf="deviationResult.deviationMeters > 500" style="color:red;">Warning: Significant deviation, initiating reroute suggestion...</p>
+  </div>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+</section>

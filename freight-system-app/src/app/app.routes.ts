@@ -111,6 +111,11 @@ export const routes: Routes = [
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
   },
   {
+    path: 'analytics/route-deviation',
+    loadComponent: () => import('./modules/analytics/route-deviation.component').then((c) => c.RouteDeviationComponent),
+    canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]
+  },
+  {
     path: 'map',
     loadComponent: () => import('./modules/map/map.component').then((c) => c.MapComponent),
     canActivate: [() => import('./core/auth.guard').then(m => m.AuthGuard)]

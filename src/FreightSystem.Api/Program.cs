@@ -41,6 +41,7 @@ builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>(
 builder.Services.AddScoped<ITelematicsService, TelematicsService>();
 builder.Services.AddScoped<ITrafficService, TrafficService>();
 builder.Services.AddScoped<IAiTrainingService, AiTrainingService>();
+builder.Services.AddScoped<IDeviationService, DeviationService>();
 builder.Services.AddHttpClient<IMLService, MlStreamingService>();
 
 builder.Services.AddSignalR();

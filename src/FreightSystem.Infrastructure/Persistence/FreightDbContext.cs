@@ -29,6 +29,7 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<DispatchAction> DispatchActions => Set<DispatchAction>();
         public DbSet<TelematicsData> Telematics => Set<TelematicsData>();
         public DbSet<BlockchainAudit> BlockchainAudits => Set<BlockchainAudit>();
+        public DbSet<RouteDeviationAlert> RouteDeviationAlerts => Set<RouteDeviationAlert>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -140,6 +141,13 @@ namespace FreightSystem.Infrastructure.Persistence
                 entity.Property(x => x.EventType).HasMaxLength(100);
                 entity.Property(x => x.PayloadHash).HasMaxLength(256);
                 entity.Property(x => x.PreviousHash).HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<RouteDeviationAlert>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+                entity.Property(x => x.Notes).HasMaxLength(512);
             });
 
             modelBuilder.Entity<Customer>(entity =>
