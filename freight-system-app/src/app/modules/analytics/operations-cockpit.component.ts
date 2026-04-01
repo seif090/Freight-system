@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { AdvancedAnalyticsService } from './advanced-analytics.service';
@@ -9,7 +10,7 @@ import { SignalrService } from '../../core/signalr.service';
 @Component({
   selector: 'app-operations-cockpit',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './operations-cockpit.component.html'
 })
 export class OperationsCockpitComponent implements OnInit {
@@ -20,6 +21,13 @@ export class OperationsCockpitComponent implements OnInit {
   alerts: string[] = [];
   @ViewChild('etaCanvas') etaCanvas?: ElementRef<HTMLCanvasElement>;
   etaChart: any;
+
+  manualShipmentId = 0;
+  manualRouteJson = JSON.stringify([
+    { segmentOrder: 1, startLatitude: 30.0, startLongitude: 31.0, endLatitude: 31.0, endLongitude: 32.0, distanceKm: 100 }
+  ], null, 2);
+  actionItems: string[] = [];
+  optimizing = false;
 
   constructor(
     private analyticsService: AdvancedAnalyticsService,
@@ -86,4 +94,42 @@ export class OperationsCockpitComponent implements OnInit {
       }
     });
   }
+
+  manualOptimizeRoute(): void {
+    if (!this.manualShipmentId || !this.manualRouteJson) {
+      this.actionItems.unshift('Specify shipment ID and route payload before optimization.');
+      return;
+    }
+
+    let segments;
+    try {
+      segments = JSON.parse(this.manualRouteJson);
+    } catch (error) {
+      this.actionItems.unshift('Route JSON is invalid.');
+      return;
+    }
+
+    this.optimizing = true;
+    this.analyticsService.optimizeRoute(this.manualShipmentId, segments).subscribe({
+      next: (result: any) => {
+        this.optimizing = false;
+        const now = new Date().toLocaleTimeString();
+        const nextAction = `Dispatch ASAP: shipment ${this.manualShipmentId} route optimized at ${now}. Apply segment order ${result.optimizedTrajectory?.map((s: any) => s.segmentOrder).join(', ')}.`;
+        this.actionItems.unshift(nextAction);
+
+        // Edit if desired to include generated instruction.
+        this.actionItems.unshift(`Reroute instruction: use optimized route strategy for shipment ${this.manualShipmentId}.`);
+      },
+      error: err => {
+        this.optimizing = false;
+        this.actionItems.unshift(`Optimization failed: ${err?.message || 'unknown error'}`);
+      }
+    });
+  }
+
+  dispatchAsap(index: number): void {
+    const action = this.actionItems[index];
+    this.actionItems[index] = `DISPATCHED [ASAP] - ${action}`;
+  }
 }
+

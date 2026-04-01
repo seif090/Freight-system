@@ -12,6 +12,25 @@
     <canvas #etaCanvas width="800" height="300"></canvas>
   </div>
 
+  <section class="manual-command">
+    <h3>Manual Command</h3>
+    <label>Shipment ID: <input type="number" [(ngModel)]="manualShipmentId" /></label><br />
+    <label>Route Segments JSON:</label><br />
+    <textarea [(ngModel)]="manualRouteJson" rows="6" cols="80"></textarea><br />
+    <button (click)="manualOptimizeRoute()" [disabled]="optimizing">{{ optimizing ? 'Optimizing...' : 'Manual Optimize & Dispatch' }}</button>
+  </section>
+
+  <section class="next-actions">
+    <h3>Prioritized Next Actions</h3>
+    <ul>
+      <li *ngFor="let action of actionItems; index as i">
+        {{ action }}
+        <button (click)="dispatchAsap(i)">Dispatch ASAP</button>
+      </li>
+      <li *ngIf="!actionItems.length">No actions yet.</li>
+    </ul>
+  </section>
+
   <section>
     <h3>Realtime Banner</h3>
     <ul>
