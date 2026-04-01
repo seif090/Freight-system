@@ -1,6 +1,18 @@
+using FreightSystem.Application.Interfaces;
+using FreightSystem.Infrastructure.Persistence;
+using FreightSystem.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddControllers();
+
+builder.Services.AddDbContext<FreightDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Server=(localdb)\\mssqllocaldb;Database=FreightSystemDb;Trusted_Connection=True;"));
+
+builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
