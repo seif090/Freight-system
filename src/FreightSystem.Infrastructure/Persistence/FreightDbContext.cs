@@ -19,10 +19,20 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserRole> UserRoles => Set<UserRole>();
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.UserName).IsRequired();
+                entity.Property(x => x.Path).IsRequired();
+                entity.Property(x => x.Method).IsRequired();
+                entity.Property(x => x.Timestamp).IsRequired();
+            });
 
             modelBuilder.Entity<User>(entity =>
             {

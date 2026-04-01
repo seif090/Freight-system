@@ -1,5 +1,7 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Api.Filters;
+using FreightSystem.Api.Middlewares;
+using FreightSystem.Api.Services;
 using FreightSystem.Infrastructure.Persistence;
 using FreightSystem.Infrastructure.Repositories;
 using FreightSystem.Infrastructure.Services;
@@ -22,7 +24,9 @@ builder.Services.AddDbContext<FreightDbContext>(options =>
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
+builder.Services.AddScoped<ShipmentMonitoringService>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config =>
@@ -113,8 +117,12 @@ app.UseHangfireDashboard();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAuditLog();
 app.MapControllers();
 app.MapHub<FreightSystem.Api.Hubs.LiveTrackingHub> ("/hubs/tracking");
+
+RecurringJob.AddOrUpdate<ShipmentMonitoringService>("overdue-shipment-alerts", x => x.SendOverdueShipmentAlertsAsync(), "0 2 * * *");
+
 
 var summaries = new[]
 {

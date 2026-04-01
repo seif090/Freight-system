@@ -39,13 +39,54 @@ public class ReportsController : ControllerBase
             .GroupBy(x => x.CreatedAt.ToString("yyyy-MM"))
             .ToDictionary(g => g.Key, g => g.Count());
 
+        var topCustomers = customers
+            .OrderByDescending(c => c.Invoices?.Sum(inv => inv.Amount + inv.VAT) ?? 0)
+            .Take(5)
+            .Select(c => new { c.Id, c.Name, TotalInvoiced = c.Invoices?.Sum(i => i.Amount + i.VAT) ?? 0 });
+
         return Ok(new
         {
             TotalShipments = shipments.Count,
             TotalCustomers = customers.Count,
             ShipmentsPerStatus = shipmentsPerStatus,
             ShipmentsPerMode = shipmentsPerMode,
-            MonthlyShipmentCount = monthlyShipmentCount
+            MonthlyShipmentCount = monthlyShipmentCount,
+            TopCustomers = topCustomers
         });
     }
+
+    [HttpGet("overdue")]
+    [Authorize(Policy = "OperationPolicy")]
+    [XDescription("Get overdue shipments that missed ETA and are not delivered or cancelled.", "جلب الشحنات المتأخرة التي تجاوزت ETA ولا تزال ليست مُسلمة أو ملغاة.")]
+    public async Task<IActionResult> GetOverdueShipments()
+    {
+        var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
+        var now = DateTime.UtcNow;
+
+        var overdue = shipments
+            .Where(s => s.ETA.HasValue && s.ETA.Value < now && s.Status != Core.Entities.ShipmentStatus.Delivered && s.Status != Core.Entities.ShipmentStatus.Cancelled)
+            .ToList();
+
+        return Ok(new
+        {
+            Count = overdue.Count,
+            OverdueShipments = overdue
+        });
+    }
+
+    [HttpGet("top-customers")]
+    [Authorize(Policy = "SalesPolicy")]
+    [XDescription("Get top customers by revenue.", "جلب أفضل العملاء حسب الإيرادات.")]
+    public async Task<IActionResult> GetTopCustomers()
+    {
+        var customers = (await _customerRepository.GetAllAsync()).ToList();
+
+        var topCustomers = customers
+            .Select(c => new { c.Id, c.Name, TotalInvoiced = c.Invoices?.Sum(i => i.Amount + i.VAT) ?? 0 })
+            .OrderByDescending(c => c.TotalInvoiced)
+            .Take(10);
+
+        return Ok(topCustomers);
+    }
 }
+

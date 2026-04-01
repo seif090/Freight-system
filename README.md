@@ -69,9 +69,13 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 
 ## New Features Added
 - Dashboard API endpoint: `GET /api/v1.0/reports/dashboard`.
+- Advanced reports: `GET /api/v1.0/reports/overdue`, `GET /api/v1.0/reports/top-customers`.
 - Swagger x-description added via `XDescriptionAttribute` for Arabic/English description.
 - Hangfire email/SMS mock notifications via `INotificationService`.
+- Shipments overdue alert scheduler (Hangfire daily 02:00) via `ShipmentMonitoringService`.
 - RBAC from DB: user/role/userrole entities plus dynamic JWT claim roles and `DbInitializer` seeding.
+- Audit trail: request path/method/status saved to `AuditLogs` with middleware.
+- Admin RBAC endpoints: `GET /api/v1.0/admin/roles`, `POST /api/v1.0/admin/roles`, `POST /api/v1.0/admin/users/{id}/roles`.
 
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`
