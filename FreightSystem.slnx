@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FreightSystem.Api/FreightSystem.Api.csproj" />
+    <Project Path="src/FreightSystem.Application/FreightSystem.Application.csproj" />
+    <Project Path="src/FreightSystem.Core/FreightSystem.Core.csproj" />
+    <Project Path="src/FreightSystem.Infrastructure/FreightSystem.Infrastructure.csproj" />
+  </Folder>
+</Solution>
