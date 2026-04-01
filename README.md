@@ -83,7 +83,7 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`
 SignalR endpoint: `https://localhost:5001/hubs/tracking`
-Slack webhook setting (optional):
+Slack webhook setting (optional, keep secret out of repo):
 ```json
 "Notifications": {
   "SlackWebhookUrl": "https://hooks.slack.com/services/your/webhook/path
