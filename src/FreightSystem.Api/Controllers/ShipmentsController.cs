@@ -1,11 +1,13 @@
 using FreightSystem.Application.Interfaces;
 using FreightSystem.Core.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FreightSystem.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class ShipmentsController : ControllerBase
 {
     private readonly IShipmentRepository _shipmentRepository;
@@ -16,6 +18,7 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = "SalesPolicy")]
     public async Task<IActionResult> GetAll()
     {
         var shipments = await _shipmentRepository.GetAllAsync();
@@ -33,6 +36,7 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> Create([FromBody] Shipment shipment)
     {
         if (shipment is null)
@@ -49,6 +53,7 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Policy = "OperationPolicy")]
     public async Task<IActionResult> Update(int id, [FromBody] Shipment request)
     {
         var existing = await _shipmentRepository.GetByIdAsync(id);
@@ -73,6 +78,7 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "AdminPolicy")]
     public async Task<IActionResult> Delete(int id)
     {
         var existing = await _shipmentRepository.GetByIdAsync(id);
