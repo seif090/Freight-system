@@ -2,6 +2,7 @@ using FreightSystem.Application.Interfaces;
 using FreightSystem.Api.Filters;
 using FreightSystem.Api.Middlewares;
 using FreightSystem.Api.Services;
+using FreightSystem.Core.Settings;
 using FreightSystem.Infrastructure.Persistence;
 using FreightSystem.Infrastructure.Repositories;
 using FreightSystem.Infrastructure.Services;
@@ -30,8 +31,13 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<ShipmentMonitoringService>();
 builder.Services.AddScoped<IRateLimitService, RateLimitService>();
 builder.Services.AddScoped<IApiKeyManager, ApiKeyManager>();
+
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
+builder.Services.Configure<MlSettings>(builder.Configuration.GetSection("Ml"));
 builder.Services.AddSingleton<IEventBus, KafkaEventBus>();
-builder.Services.AddHttpClient();
+builder.Services.AddScoped<IGeoService, GeoService>();
+builder.Services.AddScoped<IMLService, MlStreamingService>();
+builder.Services.AddHttpClient<IMLService, MlStreamingService>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHangfire(config =>

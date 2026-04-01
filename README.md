@@ -89,6 +89,10 @@ Freight system is a Freight Forwarding & Logistics Management System built with:
 - Rate limit + API key manager endpoints: `GET /api/v1.0/apikey`, `POST /api/v1.0/apikey/create`.
 - Offline mobile sync endpoint: `POST /api/v1.0/shipments/offline-sync`.
 - Audit GC archive endpoint: `POST /api/v1.0/audit/archive?days=30`.
+- Advanced analytics: geofencing, segment ETA and anomaly checks via `POST /api/v1.0/advancedanalytics/...`.
+- Kafka event bus integrated with Confluent.Kafka in `Infrastructure.Services.KafkaEventBus`.
+- ML microservice streaming + anomaly + ETA endpoints stubbed at `ml_service/app.py` (FastAPI).
+- Warehouse fact snapshot for BI: `POST /api/v1.0/advancedanalytics/warehouse/snapshot` and `GET /api/v1.0/advancedanalytics/warehouse/facts`.
 
 ## Note
 Hangfire dashboard: `https://localhost:5001/hangfire`

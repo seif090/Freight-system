@@ -21,6 +21,9 @@ namespace FreightSystem.Infrastructure.Persistence
         public DbSet<UserRole> UserRoles => Set<UserRole>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<ShipmentLocationHistory> ShipmentLocationHistory => Set<ShipmentLocationHistory>();
+        public DbSet<RouteSegment> RouteSegments => Set<RouteSegment>();
+        public DbSet<Geofence> Geofences => Set<Geofence>();
+        public DbSet<WarehouseShipmentFact> WarehouseShipmentFacts => Set<WarehouseShipmentFact>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -72,6 +75,26 @@ namespace FreightSystem.Infrastructure.Persistence
             {
                 entity.HasKey(x => x.Id);
                 entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId);
+            });
+
+            modelBuilder.Entity<RouteSegment>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.SegmentOrder).IsRequired();
+                entity.HasOne(x => x.Shipment).WithMany().HasForeignKey(x => x.ShipmentId);
+            });
+
+            modelBuilder.Entity<Geofence>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.Name).IsRequired();
+            });
+
+            modelBuilder.Entity<WarehouseShipmentFact>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.Property(x => x.TrackingNumber).IsRequired();
+                entity.Property(x => x.RouteKey).IsRequired();
             });
 
             modelBuilder.Entity<ShipmentDetail>(entity => { entity.HasKey(x => x.Id); });
