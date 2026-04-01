@@ -28,6 +28,24 @@
     <input type="range" min="0" max="120" step="5" [(ngModel)]="anomalyThreshold" (input)="onThresholdChange()" />
     <span>{{ anomalyThreshold }} min</span>
     <button (click)="runManualPopulate()">Manual DelayHistory Refresh</button>
+    <div *ngIf="financialSummary">
+      <h4>Financial Summary</h4>
+      <p>Total Invoiced: {{ financialSummary.totalInvoiced | currency }}</p>
+      <p>Outstanding: {{ financialSummary.outstandingAmount | currency }}</p>
+      <p>Overdue: {{ financialSummary.overdueAmount | currency }} ({{ financialSummary.overdueCount }} invoices)</p>
+      <p>Avg Overdue Days: {{ financialSummary.avgOverdueDays | number:'1.1-1' }}</p>
+      <button *ngIf="financialSummary.customerCreditUsage?.length" (click)="markTopOverduePaid()">Mark top overdue invoice as Paid</button>
+    </div>
+    <div *ngIf="invoiceAging">
+      <h4>Invoice Aging</h4>
+      <ul>
+        <li>Current: {{ invoiceAging.agingBuckets.current | currency }}</li>
+        <li>1-30 days: {{ invoiceAging.agingBuckets['1-30'] | currency }}</li>
+        <li>31-60 days: {{ invoiceAging.agingBuckets['31-60'] | currency }}</li>
+        <li>61-90 days: {{ invoiceAging.agingBuckets['61-90'] | currency }}</li>
+        <li>90+ days: {{ invoiceAging.agingBuckets['91+'] | currency }}</li>
+      </ul>
+    </div>
     <div *ngIf="delayAnomalyClusters">
       <p>Total Matches: {{ delayAnomalyClusters.totalMatches }}</p>
       <p>Total Clusters: {{ delayAnomalyClusters.clusterHistory?.totalClusters || 0 }}</p>

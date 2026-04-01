@@ -208,6 +208,48 @@ namespace FreightSystem.Infrastructure.Persistence
                 }
             );
 
+            // Finance demo invoices
+            var invoice1 = new Invoice
+            {
+                InvoiceNumber = "INV-1001",
+                CustomerId = customer1.Id,
+                ShipmentId = stuckShipment.Id,
+                Amount = 15000m,
+                VAT = 2250m,
+                Currency = "USD",
+                Status = InvoiceStatus.Overdue,
+                CreatedAt = now.AddDays(-40),
+                DueDate = now.AddDays(-10)
+            };
+
+            var invoice2 = new Invoice
+            {
+                InvoiceNumber = "INV-1002",
+                CustomerId = customer2.Id,
+                ShipmentId = deliveredShipment.Id,
+                Amount = 8000m,
+                VAT = 1200m,
+                Currency = "USD",
+                Status = InvoiceStatus.Paid,
+                CreatedAt = now.AddDays(-20),
+                DueDate = now.AddDays(-5)
+            };
+
+            var invoice3 = new Invoice
+            {
+                InvoiceNumber = "INV-1003",
+                CustomerId = customer1.Id,
+                ShipmentId = null,
+                Amount = 4700m,
+                VAT = 705m,
+                Currency = "USD",
+                Status = InvoiceStatus.Issued,
+                CreatedAt = now.AddDays(-7),
+                DueDate = now.AddDays(23)
+            };
+
+            context.Invoices.AddRange(invoice1, invoice2, invoice3);
+
             await context.SaveChangesAsync();
         }
 

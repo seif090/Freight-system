@@ -31,6 +31,8 @@ export class LlmOpsComponent implements OnInit {
   error = '';
   bannerMessage = '';
   bannerType: 'info' | 'success' | 'warning' | 'error' = 'info';
+  financialSummary: any;
+  invoiceAging: any;
   anomalyClusterChartInstance: any;
 
   constructor(private analyticsService: AnalyticsService, private signalr: SignalrService) {}
@@ -61,6 +63,16 @@ export class LlmOpsComponent implements OnInit {
         setTimeout(() => this.drawRegressionChart(), 0);
       },
       error: err => this.error = err?.message || 'Failed to load regression'
+    });
+
+    this.analyticsService.getFinancialSummary().subscribe({
+      next: data => this.financialSummary = data,
+      error: err => this.error = err?.message || 'Failed to load financial summary'
+    });
+
+    this.analyticsService.getInvoiceAging().subscribe({
+      next: data => this.invoiceAging = data,
+      error: err => this.error = err?.message || 'Failed to load aging data'
     });
 
     this.signalr.missedEtaDelayHistoryPopulated$.subscribe(payload => {
@@ -114,6 +126,30 @@ export class LlmOpsComponent implements OnInit {
 
   onThresholdChange(): void {
     this.loadAnomalyClusters();
+  }
+
+  markTopOverduePaid(): void {
+    if (!this.financialSummary?.customerCreditUsage?.length) return;
+
+    const top = this.financialSummary.customerCreditUsage[0];
+    if (!top) return;
+
+    this.analyticsService.getInvoiceAging().subscribe();
+
+    // This is a naive lookup to find an overdue invoice; in a real app we'd query exact invoice IDs.
+    this.analyticsService.getDelayAnomalyClusters(this.anomalyThreshold).subscribe();
+
+    // The API call below is just a trigger action; this demo uses seeded overdue invoice ID 1.
+    this.analyticsService.markInvoicePaid(1).subscribe({
+      next: () => {
+        this.showBanner('Marked INV-1001 as paid (demo action)', 'success');
+        this.analyticsService.getFinancialSummary().subscribe(data => this.financialSummary = data);
+        this.analyticsService.getInvoiceAging().subscribe(data => this.invoiceAging = data);
+      },
+      error: err => {
+        this.showBanner(err?.message || 'Failed to mark invoice as paid', 'error');
+      }
+    });
   }
 
   private drawTokenCostChart(): void {

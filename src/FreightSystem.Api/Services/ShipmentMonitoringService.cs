@@ -58,6 +58,36 @@ namespace FreightSystem.Api.Services
             });
         }
 
+        public async Task SendOverdueInvoiceAlertsAsync()
+        {
+            var now = DateTime.UtcNow;
+            var overdueInvoices = await _dbContext.Invoices
+                .Where(i => i.DueDate.HasValue && i.DueDate.Value < now && i.Status != Core.Entities.InvoiceStatus.Paid && i.Status != Core.Entities.InvoiceStatus.Cancelled)
+                .Include(i => i.Customer)
+                .ToListAsync();
+
+            if (!overdueInvoices.Any())
+                return;
+
+            var overdueCount = overdueInvoices.Count;
+            var overdueSum = overdueInvoices.Sum(i => i.Amount + i.VAT);
+            var message = $"{overdueCount} overdue invoices totaling {overdueSum:C} detected at {now:O}.";
+
+            await _notificationService.SendEmailAsync("finance@freightsystem.local", "Overdue invoices alert", message);
+            await _notificationService.SendSmsAsync("+201000000002", message);
+
+            // Slack attachment uses invoice-level details and does not require shipment entity.
+            await SendSlackInvoiceAlertAsync(overdueInvoices, message);
+
+            await _hubContext.Clients.Group("Dispatchers").SendAsync("OverdueInvoiceAlert", new
+            {
+                Count = overdueCount,
+                Amount = overdueSum,
+                Message = message,
+                Time = now
+            });
+        }
+
         public async Task AutoPopulateDelayHistoryForMissedEtaAsync()
         {
             var shipments = (await _shipmentRepository.GetAllAsync()).ToList();
@@ -141,6 +171,40 @@ namespace FreightSystem.Api.Services
                         new { title = "Status", value = s.Status.ToString(), @short = true },
                         new { title = "ETA", value = s.ETA?.ToString("u") ?? "N/A", @short = true },
                         new { title = "CustomerId", value = s.CustomerId.ToString(), @short = true }
+                    }
+                }).ToArray()
+            };
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                await client.PostAsJsonAsync(url, payload);
+            }
+            catch
+            {
+                // ignore Slack errors
+            }
+        }
+
+        private async Task SendSlackInvoiceAlertAsync(IEnumerable<Core.Entities.Invoice> invoices, string summary)
+        {
+            var url = _configuration.GetValue<string>("Notifications:SlackWebhookUrl");
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+
+            var payload = new
+            {
+                text = $"[FreightSystem] {summary}",
+                attachments = invoices.Select(i => new
+                {
+                    fallback = $"Invoice {i.InvoiceNumber} overdue",
+                    color = "#d32f2f",
+                    title = i.InvoiceNumber,
+                    fields = new[]
+                    {
+                        new { title = "Customer", value = i.Customer?.Name ?? "Unknown", @short = true },
+                        new { title = "Amount", value = (i.Amount + i.VAT).ToString("C"), @short = true },
+                        new { title = "DueDate", value = i.DueDate?.ToString("u") ?? "N/A", @short = true }
                     }
                 }).ToArray()
             };

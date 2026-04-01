@@ -98,39 +98,89 @@ public class ReportsController : ControllerBase
         return Ok(topCustomers);
     }
 
-    [HttpGet("llm-spend-trend")]
-    [Authorize(Policy = "OperationPolicy")]
-    [XDescription("Get LLM spend trend and totals.", "الحصول على اتجاه إنفاق LLM والإجماليات.")]
-    public async Task<IActionResult> GetLlmSpendTrend([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
-    {
-        var query = _dbContext.LlmSpendLogs.AsQueryable();
-
-        if (from.HasValue) query = query.Where(x => x.Timestamp >= from.Value.ToUniversalTime());
-        if (to.HasValue) query = query.Where(x => x.Timestamp <= to.Value.ToUniversalTime());
-
-        var entries = await query.ToListAsync();
-
-        var grouped = entries
-            .GroupBy(x => x.Timestamp.Date)
-            .Select(g => new
-            {
-                Date = g.Key,
-                TotalToken = g.Sum(x => x.TokenUsage),
-                TotalCost = g.Sum(x => x.EstimatedCostUsd),
-                Requests = g.Count(),
-                SuccessRate = g.Any() ? g.Count(x => x.Success) * 100.0 / g.Count() : 0
-            })
-            .OrderBy(x => x.Date)
-            .ToList();
-
-        return Ok(new
+        [HttpGet("financial/summary")]
+        [Authorize(Policy = "SalesPolicy")]
+        [XDescription("Get financial performance summary for invoices.", "الحصول على ملخص الأداء المالي للفواتير.")]
+        public async Task<IActionResult> GetFinancialSummary()
         {
-            TotalEntries = entries.Count,
-            TotalToken = entries.Sum(x => x.TokenUsage),
-            TotalCost = entries.Sum(x => x.EstimatedCostUsd),
-            GroupByDay = grouped
-        });
-    }
+            var invoices = await _dbContext.Invoices.Include(i => i.Customer).ToListAsync();
+            var now = DateTime.UtcNow;
+
+            var totalInvoiced = invoices.Sum(i => i.Amount + i.VAT);
+            var paidAmount = invoices.Where(i => i.Status == Core.Entities.InvoiceStatus.Paid).Sum(i => i.Amount + i.VAT);
+            var outstanding = invoices.Where(i => i.Status != Core.Entities.InvoiceStatus.Paid && i.Status != Core.Entities.InvoiceStatus.Cancelled).Sum(i => i.Amount + i.VAT);
+            var overdueInvoices = invoices.Where(i => i.DueDate.HasValue && i.DueDate.Value < now && i.Status != Core.Entities.InvoiceStatus.Paid && i.Status != Core.Entities.InvoiceStatus.Cancelled).ToList();
+            var overdueAmount = overdueInvoices.Sum(i => i.Amount + i.VAT);
+            var avgOverdueDays = overdueInvoices.Any() ? overdueInvoices.Average(i => (now - i.DueDate!.Value).TotalDays) : 0;
+            var customerCreditUsage = invoices
+                .GroupBy(i => i.CustomerId)
+                .Select(g => new
+                {
+                    CustomerId = g.Key,
+                    CustomerName = g.First().Customer?.Name ?? "Unknown",
+                    TotalBilled = g.Sum(i => i.Amount + i.VAT),
+                    Unpaid = g.Where(i => i.Status != Core.Entities.InvoiceStatus.Paid && i.Status != Core.Entities.InvoiceStatus.Cancelled).Sum(i => i.Amount + i.VAT)
+                });
+
+            return Ok(new
+            {
+                TotalInvoiceCount = invoices.Count,
+                TotalInvoiced = totalInvoiced,
+                PaidAmount = paidAmount,
+                OutstandingAmount = outstanding,
+                OverdueCount = overdueInvoices.Count,
+                OverdueAmount = overdueAmount,
+                AvgOverdueDays = avgOverdueDays,
+                CustomerCreditUsage = customerCreditUsage.OrderByDescending(c => c.Unpaid).Take(20)
+            });
+        }
+
+        [HttpGet("financial/aging")]
+        [Authorize(Policy = "SalesPolicy")]
+        [XDescription("Get invoice aging buckets for receivables.", "الحصول على دلاء الشيخوخة للفواتير.")]
+        public async Task<IActionResult> GetInvoiceAging()
+        {
+            var now = DateTime.UtcNow;
+            var invoices = await _dbContext.Invoices
+                .Where(i => i.Status != Core.Entities.InvoiceStatus.Paid && i.Status != Core.Entities.InvoiceStatus.Cancelled && i.DueDate.HasValue)
+                .ToListAsync();
+
+            var buckets = new Dictionary<string, decimal>
+            {
+                ["current"] = 0,
+                ["1-30"] = 0,
+                ["31-60"] = 0,
+                ["61-90"] = 0,
+                ["91+"] = 0
+            };
+
+            foreach (var invoice in invoices)
+            {
+                var daysPast = (now - invoice.DueDate!.Value).TotalDays;
+                var amount = invoice.Amount + invoice.VAT;
+                if (daysPast <= 0) buckets["current"] += amount;
+                else if (daysPast <= 30) buckets["1-30"] += amount;
+                else if (daysPast <= 60) buckets["31-60"] += amount;
+                else if (daysPast <= 90) buckets["61-90"] += amount;
+                else buckets["91+"] += amount;
+            }
+
+            return Ok(new { AgingBuckets = buckets, TotalOutstanding = invoices.Sum(x => x.Amount + x.VAT) });
+        }
+
+        [HttpPost("invoices/{invoiceId:int}/mark-paid")]
+        [Authorize(Policy = "SalesPolicy")]
+        [XDescription("Mark an invoice as paid.", "وضع علامة مدفوعة على الفاتورة.")]
+        public async Task<IActionResult> MarkInvoicePaid(int invoiceId)
+        {
+            var invoice = await _dbContext.Invoices.FindAsync(invoiceId);
+            if (invoice == null) return NotFound();
+
+            invoice.Status = Core.Entities.InvoiceStatus.Paid;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true, invoiceId, status = invoice.Status.ToString() });
+        }
 
     [HttpGet("delay-risk-forecast")]
     [Authorize(Policy = "OperationPolicy")]

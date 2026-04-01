@@ -144,6 +144,7 @@ app.MapHub<FreightSystem.Api.Hubs.LiveTrackingHub> ("/hubs/tracking");
 
 RecurringJob.AddOrUpdate<ShipmentMonitoringService>("overdue-shipment-alerts", x => x.SendOverdueShipmentAlertsAsync(), "0 2 * * *");
 RecurringJob.AddOrUpdate<ShipmentMonitoringService>("missed-eta-delay-history", x => x.AutoPopulateDelayHistoryForMissedEtaAsync(), "0 3 * * *");
+RecurringJob.AddOrUpdate<ShipmentMonitoringService>("overdue-invoice-alerts", x => x.SendOverdueInvoiceAlertsAsync(), "0 4 * * *");
 
 var summaries = new[]
 {

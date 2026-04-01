@@ -40,6 +40,18 @@ export class AnalyticsService {
     return this.http.get(`${this.apiUrl}/delay-history/cluster-history?${params}`);
   }
 
+  getFinancialSummary(): Observable<any> {
+    return this.http.get('https://localhost:5001/api/v1.0/reports/financial/summary');
+  }
+
+  getInvoiceAging(): Observable<any> {
+    return this.http.get('https://localhost:5001/api/v1.0/reports/financial/aging');
+  }
+
+  markInvoicePaid(invoiceId: number): Observable<any> {
+    return this.http.post(`https://localhost:5001/api/v1.0/reports/invoices/${invoiceId}/mark-paid`, {});
+  }
+
   manualPopulateDelayHistory(): Observable<any> {
     return this.http.post(`${this.apiUrl}/shipments/missed-eta-populate`, {});
   }
